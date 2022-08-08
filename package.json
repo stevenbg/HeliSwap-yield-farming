@@ -1,0 +1,10 @@
+{
+  "name": "HeliSwap-yield-farming",
+  "version": "1.0.0",
+  "description": "HeliSwap Yield Farming Contracts",
+  "main": "index.js",
+  "repository": "https://github.com/LimeChain/HeliSwap-yield-farming",
+  "author": "Martin Dobrev",
+  "license": "MIT",
+  "private": true
+}
