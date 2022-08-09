@@ -20,11 +20,11 @@ task('addReward', 'Add rewards to YF contract')
   .addParam('rewarddistributor', 'Distributor address')
   .addParam('rewardduration', 'Duration in seconds')
   .setAction(async taskArgs => {
-    const { contractadress, rewardaddress, rewardsdistributor, rewardduration } = taskArgs;
+    const { contractaddress, rewardaddress, rewarddistributor, rewardduration } = taskArgs;
 
     const addRewards = require('./scripts/02-addRewards');
 
-    await addRewards(contractadress, rewardaddress, rewardsdistributor, rewardduration);
+    await addRewards(contractaddress, rewardaddress, rewarddistributor, rewardduration);
   });
 
 task('sendReward', 'Send rewards to YF contract')
