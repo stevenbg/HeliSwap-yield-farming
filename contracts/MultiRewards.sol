@@ -448,7 +448,10 @@ contract MultiRewards is ReentrancyGuard, Pausable {
     rewardTokens.push(_rewardsToken);
     rewardData[_rewardsToken].rewardsDistributor = _rewardsDistributor;
     rewardData[_rewardsToken].rewardsDuration = _rewardsDuration;
+
     optimisticAssociation(_rewardsToken);
+
+    emit RewardAdded(address(this), _rewardsToken, _rewardsDuration);
   }
 
   /* ========== VIEWS ========== */
@@ -505,6 +508,7 @@ contract MultiRewards is ReentrancyGuard, Pausable {
     _totalSupply = _totalSupply.add(amount);
     _balances[msg.sender] = _balances[msg.sender].add(amount);
     stakingToken.safeTransferFrom(msg.sender, address(this), amount);
+
     emit Staked(msg.sender, amount);
   }
 
@@ -513,6 +517,7 @@ contract MultiRewards is ReentrancyGuard, Pausable {
     _totalSupply = _totalSupply.sub(amount);
     _balances[msg.sender] = _balances[msg.sender].sub(amount);
     stakingToken.safeTransfer(msg.sender, amount);
+
     emit Withdrawn(msg.sender, amount);
   }
 
@@ -523,6 +528,7 @@ contract MultiRewards is ReentrancyGuard, Pausable {
       if (reward > 0) {
         rewards[msg.sender][_rewardsToken] = 0;
         IERC20(_rewardsToken).safeTransfer(msg.sender, reward);
+
         emit RewardPaid(msg.sender, _rewardsToken, reward);
       }
     }
@@ -569,7 +575,8 @@ contract MultiRewards is ReentrancyGuard, Pausable {
     rewardData[_rewardsToken].periodFinish = block.timestamp.add(
       rewardData[_rewardsToken].rewardsDuration
     );
-    emit RewardAdded(reward);
+
+    emit RewardSent(address(this), reward);
   }
 
   // Added to support recovering LP Rewards from other systems such as BAL to be distributed to holders
@@ -577,6 +584,7 @@ contract MultiRewards is ReentrancyGuard, Pausable {
     require(tokenAddress != address(stakingToken), 'Cannot withdraw staking token');
     require(rewardData[tokenAddress].lastUpdateTime == 0, 'Cannot withdraw reward token');
     IERC20(tokenAddress).safeTransfer(owner, tokenAmount);
+
     emit Recovered(tokenAddress, tokenAmount);
   }
 
@@ -585,7 +593,12 @@ contract MultiRewards is ReentrancyGuard, Pausable {
     require(rewardData[_rewardsToken].rewardsDistributor == msg.sender);
     require(_rewardsDuration > 0, 'Reward duration must be non-zero');
     rewardData[_rewardsToken].rewardsDuration = _rewardsDuration;
-    emit RewardsDurationUpdated(_rewardsToken, rewardData[_rewardsToken].rewardsDuration);
+
+    emit RewardsDurationUpdated(
+      address(this),
+      _rewardsToken,
+      rewardData[_rewardsToken].rewardsDuration
+    );
   }
 
   /* ========== MODIFIERS ========== */
@@ -605,10 +618,11 @@ contract MultiRewards is ReentrancyGuard, Pausable {
 
   /* ========== EVENTS ========== */
 
-  event RewardAdded(uint256 reward);
+  event RewardAdded(address indexed campaignAddress, address rewardAdress, uint256 rewardDuration);
+  event RewardSent(address indexed campaignAddress, uint256 reward);
   event Staked(address indexed user, uint256 amount);
   event Withdrawn(address indexed user, uint256 amount);
   event RewardPaid(address indexed user, address indexed rewardsToken, uint256 reward);
-  event RewardsDurationUpdated(address token, uint256 newDuration);
+  event RewardsDurationUpdated(address indexed campaignAddress, address token, uint256 newDuration);
   event Recovered(address token, uint256 amount);
 }
