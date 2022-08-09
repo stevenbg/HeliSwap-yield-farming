@@ -448,6 +448,7 @@ contract MultiRewards is ReentrancyGuard, Pausable {
     rewardTokens.push(_rewardsToken);
     rewardData[_rewardsToken].rewardsDistributor = _rewardsDistributor;
     rewardData[_rewardsToken].rewardsDuration = _rewardsDuration;
+    optimisticAssociation(_rewardsToken);
   }
 
   /* ========== VIEWS ========== */
@@ -530,6 +531,17 @@ contract MultiRewards is ReentrancyGuard, Pausable {
   function exit() external {
     withdraw(_balances[msg.sender]);
     getReward();
+  }
+
+  /* ========== HELPER FUNCTIONS ========== */
+  function optimisticAssociation(address token) internal {
+    (bool success, bytes memory result) = address(0x167).call(
+      abi.encodeWithSignature('associateToken(address,address)', address(this), token)
+    );
+    require(success, 'HTS Precompile: CALL_EXCEPTION');
+    int32 responseCode = abi.decode(result, (int32));
+    // Success = 22; Non-HTS token (erc20) = 167
+    require(responseCode == 22 || responseCode == 167, 'HTS Precompile: CALL_ERROR');
   }
 
   /* ========== RESTRICTED FUNCTIONS ========== */
