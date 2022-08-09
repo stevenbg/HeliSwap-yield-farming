@@ -3,6 +3,12 @@ require('@hashgraph/hardhat-hethers');
 import { task } from 'hardhat/config';
 import * as config from './config';
 
+task('deployFactory', 'Deploys an YF factory contract').setAction(async taskArgs => {
+  const campaignFactoryDeployment = require('./scripts/deploy-factory');
+
+  await campaignFactoryDeployment();
+});
+
 task('deploy', 'Deploys an YF contract')
   .addParam('owner', 'Campaign owner')
   .addParam('stakingtoken', 'Staking token address')
