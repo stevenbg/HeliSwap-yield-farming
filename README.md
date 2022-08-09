@@ -17,3 +17,30 @@ Compile the contracts:
 ```
 npx hardhat compile
 ```
+
+### ⚙️ Deployment steps:
+
+1. Deploy contract
+   Edit `--owner` and `--stakingtoken` in `package.json`
+
+```
+yarn deploy
+```
+
+2. Add reward
+
+```
+yarn addReward
+```
+
+3. Approve reward token
+
+```
+yarn approveToken
+```
+
+4. Send rewards
+
+```
+yarn sendReward
+```

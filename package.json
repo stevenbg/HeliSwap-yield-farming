@@ -4,7 +4,11 @@
   "description": "HeliSwap Yield Farming Contracts",
   "main": "index.js",
   "scripts": {
-    "deploy": "npx hardhat deploy --owner 0x0000000000000000000000000000000002099e42 --stakingtoken 0x0000000000000000000000000000000002121D51"
+    "deploy": "npx hardhat deploy --owner 0x0000000000000000000000000000000002134dEd --stakingtoken 0xF8c7E417F2D76C0dBBDC21B6a1367Cd235707484",
+    "addReward": "npx hardhat addReward --contractaddress 0x0000000000000000000000000000000002da44f1 --rewardaddress 0x0000000000000000000000000000000002121D51 --rewarddistributor 0x0000000000000000000000000000000002134dEd --rewardduration 86400",
+    "sendReward": "npx hardhat sendReward --contractaddress 0x0000000000000000000000000000000002da44f1 --rewardaddress 0x0000000000000000000000000000000002121D51 --rewardamount 10 --rewarddecimals 6",
+    "associateToken": "npx hardhat associateToken --accountid 0.0.34819565 --pk PK --tokenid 0.0.34741650",
+    "approveToken": "npx hardhat approveToken --accountid 0.0.34819565 --pk PK --spenderaccountid 0.0.47858929 --tokenid 0.0.34741585 --amount 10000000000"
   },
   "repository": "https://github.com/LimeChain/HeliSwap-yield-farming",
   "author": "Martin Dobrev",
