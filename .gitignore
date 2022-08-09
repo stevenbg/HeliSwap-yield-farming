@@ -2,7 +2,7 @@ node_modules
 config.ts
 coverage
 coverage.json
-typechain
+typechain-types
 
 #Hardhat files
 cache
