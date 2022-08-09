@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "HeliSwap Yield Farming Contracts",
   "main": "index.js",
+  "scripts": {
+    "deploy": "npx hardhat deploy --owner 0x0000000000000000000000000000000002099e42 --stakingtoken 0x0000000000000000000000000000000002121D51"
+  },
   "repository": "https://github.com/LimeChain/HeliSwap-yield-farming",
   "author": "Martin Dobrev",
   "license": "MIT",
