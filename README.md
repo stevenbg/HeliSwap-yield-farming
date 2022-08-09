@@ -41,28 +41,32 @@ Arguments for deployment scripts
 ```
 
 1. Deploy contract
-   Edit `--owner` and `--stakingtoken` in `package.json`
+
+Edit `--owner` and `--stakingtoken` in `package.json`
 
 ```
 yarn deploy
 ```
 
 2. Add reward
-   Edit `--contractaddress`, `--rewardaddress`, `--rewarddistributor` and `--rewardduration` in `package.json`
+
+Edit `--contractaddress`, `--rewardaddress`, `--rewarddistributor` and `--rewardduration` in `package.json`
 
 ```
 yarn addReward
 ```
 
 3. Approve reward token
-   Edit `--spenderaccountid` and `--tokenid` in `package.json`
+
+Edit `--spenderaccountid` and `--tokenid` in `package.json`
 
 ```
 yarn approveToken
 ```
 
 4. Send rewards
-   Edit `--contractaddress`, `--rewardaddress`, `--rewardamount` and `--rewarddecimals` in `package.json`
+
+Edit `--contractaddress`, `--rewardaddress`, `--rewardamount` and `--rewarddecimals` in `package.json`
 
 ```
 yarn sendReward
