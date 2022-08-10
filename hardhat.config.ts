@@ -4,10 +4,22 @@ import { task } from 'hardhat/config';
 import * as config from './config';
 
 task('deployFactory', 'Deploys an YF factory contract').setAction(async taskArgs => {
-  const campaignFactoryDeployment = require('./scripts/deploy-factory');
+  const campaignFactoryDeployment = require('./scripts/01.1-deploy-factory');
 
   await campaignFactoryDeployment();
 });
+
+task('deployMultirewards', 'Deploys an YF contract from factory')
+  .addParam('factoryaddress', 'Factory contract address')
+  .addParam('owner', 'Campaign owner')
+  .addParam('stakingtoken', 'Staking token address')
+  .setAction(async taskArgs => {
+    const { factoryaddress, owner, stakingtoken } = taskArgs;
+
+    const campaignDeploymentFromFactory = require('./scripts/01.2-deploy-multi-reward-from-factory');
+
+    await campaignDeploymentFromFactory(factoryaddress, owner, stakingtoken);
+  });
 
 task('deploy', 'Deploys an YF contract')
   .addParam('owner', 'Campaign owner')

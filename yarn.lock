@@ -393,7 +393,7 @@
     "@ethersproject/bytes" "^5.6.1"
     "@ethersproject/logger" "^5.6.0"
 
-"@ethersproject/rlp@5.6.1", "@ethersproject/rlp@^5.6.1":
+"@ethersproject/rlp@5.6.1", "@ethersproject/rlp@^5.6.0", "@ethersproject/rlp@^5.6.1":
   version "5.6.1"
   resolved "https://registry.yarnpkg.com/@ethersproject/rlp/-/rlp-5.6.1.tgz#df8311e6f9f24dcb03d59a2bac457a28a4fe2bd8"
   integrity sha512-uYjmcZx+DKlFUk7a5/W9aQVaoEC7+1MOBgNtvNg13+RnuUwT4F0zTovC0tmay5SmRslb29V1B7Y5KCri46WhuQ==
@@ -581,7 +581,7 @@
     protobufjs "^7.0.0"
     yargs "^16.2.0"
 
-"@hashgraph/cryptography@^1.3.0":
+"@hashgraph/cryptography@^1.1.0-beta.5", "@hashgraph/cryptography@^1.2.0", "@hashgraph/cryptography@^1.3.0":
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/@hashgraph/cryptography/-/cryptography-1.3.0.tgz#2c2f55d80c91cf63b8e297ca237dc1288c52a0f5"
   integrity sha512-nyNXVNy58iFcr9DqgNdPWDVLK631mvkUYesoiJEZZ1/Pzhw0lP8nt4YnXZeflsr52sjSy0+uxJSJoHv3rTdJRQ==
@@ -598,7 +598,7 @@
   resolved "https://registry.yarnpkg.com/@hashgraph/hardhat-hethers/-/hardhat-hethers-1.0.0.tgz#6d1eaf25fb36a27c0512775dec912d462741fbb2"
   integrity sha512-gwzl/z85GBteS0xZr9OYZTX8zAA8MkA//+hr+OKxljvr0JyFqsubU+7CGqa458HdF9xLsokIzPU3Ha7I9HGLJQ==
 
-"@hashgraph/hethers@^1.1.4":
+"@hashgraph/hethers@^1.1.0":
   version "1.1.4"
   resolved "https://registry.yarnpkg.com/@hashgraph/hethers/-/hethers-1.1.4.tgz#6ab8de0f7271deb5be8d91a990c4ef5ab406fd0f"
   integrity sha512-yFAT6D0g7iBinY8bFRTzstB+n/7GNJRSKq2HOQugEMsUsu/rO4EoPLCBRcAKH9nsHVJC8358GyeYg8hWhZjeog==
@@ -627,6 +627,14 @@
     long "^4.0.0"
     protobufjs "^6.11.2"
 
+"@hashgraph/proto@2.5.0":
+  version "2.5.0"
+  resolved "https://registry.yarnpkg.com/@hashgraph/proto/-/proto-2.5.0.tgz#d16f5df307410a46bbb7112e162f849395d8fe36"
+  integrity sha512-354Ozgf55mdPUUcED5E8n2ehGMO6mpOgtMIo4l4+t/wpp1qRmOfbHlVfI4TQN7W4WMb/CRnmbjCl6KDF/SnTxA==
+  dependencies:
+    long "^4.0.0"
+    protobufjs "^6.11.2"
+
 "@hashgraph/proto@2.9.0":
   version "2.9.0"
   resolved "https://registry.yarnpkg.com/@hashgraph/proto/-/proto-2.9.0.tgz#ec2cc21a2a4e02e6b3f101dd9e09aaef9b92afc2"
@@ -651,6 +659,24 @@
     js-logger "^1.6.1"
     long "^4.0.0"
     protobufjs "^6.11.3"
+    utf8 "^3.0.0"
+
+"@hashgraph/sdk@v2.15.0":
+  version "2.15.0"
+  resolved "https://registry.yarnpkg.com/@hashgraph/sdk/-/sdk-2.15.0.tgz#1814906e1b2c654dfbd0ea1334e7ea76e06a010a"
+  integrity sha512-SP3Wnb7DlLwwhLqr3tnYfKVMyL6wfm+5aBCM6K0ES90b9yYlnTYehMO/EJAmSlvwer2abmzxEneHXP/DmK9LoQ==
+  dependencies:
+    "@ethersproject/rlp" "^5.6.0"
+    "@grpc/grpc-js" "^1.6.7"
+    "@hashgraph/cryptography" "^1.2.0"
+    "@hashgraph/proto" "2.5.0"
+    axios "^0.27.2"
+    bignumber.js "^9.0.2"
+    crypto-js "^4.1.1"
+    js-base64 "^3.7.2"
+    js-logger "^1.6.1"
+    long "^4.0.0"
+    protobufjs "^6.11.2"
     utf8 "^3.0.0"
 
 "@hethers/abstract-provider@1.1.2":
@@ -952,6 +978,11 @@
     semver "^6.3.0"
     table "^6.8.0"
     undici "^5.4.0"
+
+"@openzeppelin/contracts@^4.7.2":
+  version "4.7.2"
+  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-4.7.2.tgz#7587416fe2d35abf574193515b8971bfe9f64bc7"
+  integrity sha512-4n/JL9izql8303mPqPdubuna/DWEMbmOzWYUWyCPhjhiEr2w3nQrjE7vZz1fBF+wzzP6dZbIcsgqACk53c9FGA==
 
 "@protobufjs/aspromise@^1.1.1", "@protobufjs/aspromise@^1.1.2":
   version "1.1.2"

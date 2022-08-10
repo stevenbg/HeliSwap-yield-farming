@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "deployFactory": "npx hardhat deployFactory",
+    "deployMultirewards": "npx hardhat deployMultirewards --factoryaddress 0x0000000000000000000000000000000002da54db --owner 0x00000000000000000000000000000000020cf0a3 --stakingtoken 0x1165f6115eb38eD34E93B303f9388a901b6d47d4",
     "deploy": "npx hardhat deploy --owner 0x00000000000000000000000000000000020cf0a3 --stakingtoken 0x1165f6115eb38eD34E93B303f9388a901b6d47d4",
     "addReward": "npx hardhat addReward --contractaddress 0x0000000000000000000000000000000002da46e3 --rewardaddress 0x0000000000000000000000000000000002121d92 --rewarddistributor 0x00000000000000000000000000000000020cf0a3 --rewardduration 86400",
     "sendReward": "npx hardhat sendReward --contractaddress 0x0000000000000000000000000000000002da46e3 --rewardaddress 0x0000000000000000000000000000000002121d92 --rewardamount 10 --rewarddecimals 10",
@@ -18,9 +19,10 @@
   "devDependencies": {
     "@ethersproject/abi": "^5.4.7",
     "@ethersproject/providers": "^5.4.7",
-    "@hashgraph/hardhat-hethers": "^1.0.0",
-    "@hashgraph/hethers": "^1.1.4",
-    "@hashgraph/sdk": "^2.17.1",
+    "@hashgraph/cryptography": "^1.1.0-beta.5",
+    "@hashgraph/hethers": "^1.1.0",
+    "@hashgraph/proto": "2.1.5",
+    "@hashgraph/sdk": "v2.15.0",
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.0",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
     "@nomicfoundation/hardhat-toolbox": "^1.0.1",
@@ -39,5 +41,8 @@
     "ts-node": ">=8.0.0",
     "typechain": "^8.1.0",
     "typescript": ">=4.5.0"
+  },
+  "dependencies": {
+    "@hashgraph/hardhat-hethers": "^1.0.0"
   }
 }
