@@ -1,26 +1,22 @@
 pragma solidity 0.5.17;
 
-// import "@openzeppelin/contracts/access/Ownable.sol";
-
 import './MultiRewards.sol';
 
-contract MultiRewardsFactory {
-  address[] public multiRewardsArray;
-  MultiRewards[] public MultiRewardsArray;
+contract MultiRewardsFactory is Owned {
+  MultiRewards[] public multiRewardsArray;
 
+  constructor() public Owned(msg.sender) {}
 
   event MultirewardsContractDeployed(address multiRewardsCont);
 
-  function deploy(address _owner, address _stakingToken) external {
-
+  function deploy(address _owner, address _stakingToken) external onlyOwner {
     MultiRewards newMultiRewardsContract = new MultiRewards(_owner, _stakingToken);
-    multiRewardsArray.push(address(newMultiRewardsContract));
+    multiRewardsArray.push(newMultiRewardsContract);
 
-  emit MultirewardsContractDeployed(address(newMultiRewardsContract));
-  // MultiRewardsArray.push(newMultiRewardsContract);
+    emit MultirewardsContractDeployed(address(newMultiRewardsContract));
   }
 
-  function getMultirewardsContractsCount() public view returns(uint count) {
-  return multiRewardsArray.length;
+  function getMultirewardsContractsCount() public view returns (uint256 count) {
+    return multiRewardsArray.length;
   }
 }

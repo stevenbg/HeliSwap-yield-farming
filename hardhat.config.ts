@@ -4,7 +4,7 @@ import { task } from 'hardhat/config';
 import * as config from './config';
 
 task('deployFactory', 'Deploys an YF factory contract').setAction(async taskArgs => {
-  const campaignFactoryDeployment = require('./scripts/01.1-deploy-factory');
+  const campaignFactoryDeployment = require('./scripts/01-deploy-factory');
 
   await campaignFactoryDeployment();
 });
@@ -16,7 +16,7 @@ task('deployMultirewards', 'Deploys an YF contract from factory')
   .setAction(async taskArgs => {
     const { factoryaddress, owner, stakingtoken } = taskArgs;
 
-    const campaignDeploymentFromFactory = require('./scripts/01.2-deploy-multi-reward-from-factory');
+    const campaignDeploymentFromFactory = require('./scripts/02-deploy-multi-reward-from-factory');
 
     await campaignDeploymentFromFactory(factoryaddress, owner, stakingtoken);
   });
@@ -40,7 +40,7 @@ task('addReward', 'Add rewards to YF contract')
   .setAction(async taskArgs => {
     const { contractaddress, rewardaddress, rewarddistributor, rewardduration } = taskArgs;
 
-    const addRewards = require('./scripts/02-addRewards');
+    const addRewards = require('./scripts/03-addRewards');
 
     await addRewards(contractaddress, rewardaddress, rewarddistributor, rewardduration);
   });
@@ -54,7 +54,7 @@ task('sendReward', 'Send rewards to YF contract')
   .setAction(async taskArgs => {
     const { contractaddress, rewardaddress, rewardamount, rewarddecimals } = taskArgs;
 
-    const sendRewards = require('./scripts/03-sendRewards');
+    const sendRewards = require('./scripts/04-sendRewards');
 
     await sendRewards(contractaddress, rewardaddress, rewardamount, rewarddecimals);
   });
