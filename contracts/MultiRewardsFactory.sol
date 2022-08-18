@@ -7,13 +7,13 @@ contract MultiRewardsFactory is Owned {
 
   constructor() public Owned(msg.sender) {}
 
-  event MultirewardsContractDeployed(address multiRewardsCont);
+  event MultirewardsContractDeployed(address multiRewardsCont, address stakingToken);
 
   function deploy(address _owner, address _stakingToken) external onlyOwner {
     MultiRewards newMultiRewardsContract = new MultiRewards(_owner, _stakingToken);
     multiRewardsArray.push(newMultiRewardsContract);
 
-    emit MultirewardsContractDeployed(address(newMultiRewardsContract));
+    emit MultirewardsContractDeployed(address(newMultiRewardsContract), _stakingToken);
   }
 
   function getMultirewardsContractsCount() public view returns (uint256 count) {
