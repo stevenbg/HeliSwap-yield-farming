@@ -10,7 +10,8 @@
     "sendReward": "npx hardhat sendReward --network testnet --campaign 0x0000000000000000000000000000000002dcD66B --reward 0x0000000000000000000000000000000002dce0b7 --amount 200000000000",
     "associateToken": "npx hardhat associateToken --network testnet --accountid 0.0.47849515 --pk <PK> --tokenid 0.0.48029879",
     "approveToken": "npx hardhat approveToken --network testnet --accountid 0.0.47849515 --pk <PK> --spenderaccountid 0.0.48027243 --tokenid 0.0.48029879 --amount 200000000000",
-    "setupHbarCampaign": "npx hardhat setupHbarCampaign --network testnet --factory 0x0000000000000000000000000000000002dd972f --token 0x978264868aA0730718FBe0A3CCCF8C09f6eb74C3 --hbaramount 100 --duration 1000"
+    "setupHbarCampaign": "npx hardhat setupHbarCampaign --network testnet --factory 0x0000000000000000000000000000000002dd972f --token 0x978264868aA0730718FBe0A3CCCF8C09f6eb74C3 --hbaramount 100 --duration 1000",
+     "interact": "npx hardhat interact --network testnet --campaign 0x0000000000000000000000000000000002DDb09B --walletaddress 0x0000000000000000000000000000000002099E42"
   },
   "repository": "https://github.com/LimeChain/HeliSwap-yield-farming",
   "author": "Martin Dobrev",

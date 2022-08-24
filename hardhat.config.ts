@@ -71,6 +71,17 @@ task('setupHbarCampaign', 'Deploys HBAR campaign')
     await setupHbarCampaign(taskArgs.factory, taskArgs.token, taskArgs.hbaramount, taskArgs.duration);
   });
 
+task('interact', 'Interact with multirewards contract')
+  .addParam('campaign', 'Contract address')
+  .addParam('walletaddress', 'Wallet address')
+  .setAction(async taskArgs => {
+    const { campaign, walletaddress } = taskArgs;
+
+    const campaignDeploymentFromFactory = require('./scripts/05-multireward-interactions');
+
+    await campaignDeploymentFromFactory(campaign, walletaddress);
+  });
+
 module.exports = {
   solidity: {
     compilers: [
