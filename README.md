@@ -40,15 +40,21 @@ Arguments for deployment scripts
 --spenderaccountid    -> Deployed campaign id
 ```
 
-1. Deploy contract
-
-Edit `--owner` and `--stakingtoken` in `package.json`
+1. Deploy factory
 
 ```
-yarn deploy
+yarn deployFactory
 ```
 
-2. Add reward
+2. Deploy contract
+
+Edit `--factoryaddress`, `--owner` and `--stakingtoken` in `package.json`
+
+```
+yarn deployMultirewards
+```
+
+3. Add reward
 
 Edit `--contractaddress`, `--rewardaddress`, `--rewarddistributor` and `--rewardduration` in `package.json`
 
@@ -56,7 +62,7 @@ Edit `--contractaddress`, `--rewardaddress`, `--rewarddistributor` and `--reward
 yarn addReward
 ```
 
-3. Approve reward token
+4. Approve reward token
 
 Edit `--spenderaccountid` and `--tokenid` in `package.json`
 
@@ -64,7 +70,7 @@ Edit `--spenderaccountid` and `--tokenid` in `package.json`
 yarn approveToken
 ```
 
-4. Send rewards
+5. Send rewards
 
 Edit `--contractaddress`, `--rewardaddress`, `--rewardamount` and `--rewarddecimals` in `package.json`
 

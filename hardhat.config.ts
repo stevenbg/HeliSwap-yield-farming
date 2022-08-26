@@ -21,17 +21,6 @@ task('deployMultirewards', 'Deploys an YF contract from factory')
     await campaignDeploymentFromFactory(factoryaddress, owner, stakingtoken);
   });
 
-task('deploy', 'Deploys an YF contract')
-  .addParam('owner', 'Campaign owner')
-  .addParam('stakingtoken', 'Staking token address')
-  .setAction(async taskArgs => {
-    const { owner, stakingtoken } = taskArgs;
-
-    const campaignDeployment = require('./scripts/01-deploy');
-
-    await campaignDeployment(owner, stakingtoken);
-  });
-
 task('addReward', 'Add rewards to YF contract')
   .addParam('contractaddress', 'Campaign address')
   .addParam('rewardaddress', 'Reward address')
