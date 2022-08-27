@@ -2,12 +2,12 @@
 
 pragma solidity 0.5.17;
 
-import "./ReentrancyGuard.sol";
-import "./Pausable.sol";
-import "./libraries/Math.sol";
-import "./libraries/SafeERC20.sol";
-import "./interfaces/IERC20.sol";
-import "./libraries/SafeMath.sol";
+import './ReentrancyGuard.sol';
+import './Pausable.sol';
+import './libraries/Math.sol';
+import './libraries/SafeERC20.sol';
+import './interfaces/IERC20.sol';
+import './libraries/SafeMath.sol';
 
 contract MultiRewards is ReentrancyGuard, Pausable {
     using SafeMath for uint256;
@@ -16,10 +16,9 @@ contract MultiRewards is ReentrancyGuard, Pausable {
     /* ========== STATE VARIABLES ========== */
 
     struct Reward {
-        address rewardsDistributor;
-        uint256 rewardsDuration;
         uint256 periodFinish;
         uint256 rewardRate;
+        uint256 rewardsDuration;
         uint256 lastUpdateTime;
         uint256 rewardPerTokenStored;
     }
@@ -41,21 +40,6 @@ contract MultiRewards is ReentrancyGuard, Pausable {
         stakingToken = IERC20(_stakingToken);
     }
 
-    function addReward(
-        address _rewardsToken,
-        address _rewardsDistributor,
-        uint256 _rewardsDuration
-    ) public onlyOwner {
-        require(rewardData[_rewardsToken].rewardsDuration == 0);
-        rewardTokens.push(_rewardsToken);
-        rewardData[_rewardsToken].rewardsDistributor = _rewardsDistributor;
-        rewardData[_rewardsToken].rewardsDuration = _rewardsDuration;
-
-        optimisticAssociation(_rewardsToken);
-
-        emit RewardAdded(_rewardsToken, _rewardsDuration);
-    }
-
     /* ========== VIEWS ========== */
 
     function totalSupply() external view returns (uint256) {
@@ -75,21 +59,21 @@ contract MultiRewards is ReentrancyGuard, Pausable {
             return rewardData[_rewardsToken].rewardPerTokenStored;
         }
         return
-        rewardData[_rewardsToken].rewardPerTokenStored.add(
-            lastTimeRewardApplicable(_rewardsToken)
-            .sub(rewardData[_rewardsToken].lastUpdateTime)
-            .mul(rewardData[_rewardsToken].rewardRate)
-            .mul(1e18)
-            .div(_totalSupply)
-        );
+            rewardData[_rewardsToken].rewardPerTokenStored.add(
+                lastTimeRewardApplicable(_rewardsToken)
+                    .sub(rewardData[_rewardsToken].lastUpdateTime)
+                    .mul(rewardData[_rewardsToken].rewardRate)
+                    .mul(1e18)
+                    .div(_totalSupply)
+            );
     }
 
     function earned(address account, address _rewardsToken) public view returns (uint256) {
         return
-        _balances[account]
-        .mul(rewardPerToken(_rewardsToken).sub(userRewardPerTokenPaid[account][_rewardsToken]))
-        .div(1e18)
-        .add(rewards[account][_rewardsToken]);
+            _balances[account]
+                .mul(rewardPerToken(_rewardsToken).sub(userRewardPerTokenPaid[account][_rewardsToken]))
+                .div(1e18)
+                .add(rewards[account][_rewardsToken]);
     }
 
     function getRewardForDuration(address _rewardsToken) external view returns (uint256) {
@@ -97,13 +81,6 @@ contract MultiRewards is ReentrancyGuard, Pausable {
     }
 
     /* ========== MUTATIVE FUNCTIONS ========== */
-
-    function setRewardsDistributor(address _rewardsToken, address _rewardsDistributor)
-    external
-    onlyOwner
-    {
-        rewardData[_rewardsToken].rewardsDistributor = _rewardsDistributor;
-    }
 
     function stake(uint256 amount) external nonReentrant notPaused updateReward(msg.sender) {
         require(amount > 0, 'Cannot stake 0');
@@ -143,24 +120,19 @@ contract MultiRewards is ReentrancyGuard, Pausable {
         getReward();
     }
 
-    /* ========== HELPER FUNCTIONS ========== */
-    function optimisticAssociation(address token) internal {
-        (bool success, bytes memory result) = address(0x167).call(
-            abi.encodeWithSignature('associateToken(address,address)', address(this), token)
-        );
-        require(success, 'HTS Precompile: CALL_EXCEPTION');
-        int32 responseCode = abi.decode(result, (int32));
-        // Success = 22; Non-HTS token (erc20) = 167
-        require(responseCode == 22 || responseCode == 167, 'HTS Precompile: CALL_ERROR');
-    }
-
     /* ========== RESTRICTED FUNCTIONS ========== */
 
-    function notifyRewardAmount(address _rewardsToken, uint256 reward)
-    external
-    updateReward(address(0))
-    {
-        require(rewardData[_rewardsToken].rewardsDistributor == msg.sender);
+    function addReward(address _rewardsToken, uint256 _rewardsDuration) external onlyOwner {
+        require(rewardData[_rewardsToken].rewardsDuration == 0);
+        rewardTokens.push(_rewardsToken);
+        rewardData[_rewardsToken].rewardsDuration = _rewardsDuration;
+
+        optimisticAssociation(_rewardsToken);
+
+        emit RewardAdded(_rewardsToken, _rewardsDuration);
+    }
+
+    function notifyRewardAmount(address _rewardsToken, uint256 reward) external onlyOwner updateReward(address(0)) {
         // handle the transfer of reward tokens via `transferFrom` to reduce the number
         // of transactions required and ensure correctness of the reward amount
         IERC20(_rewardsToken).safeTransferFrom(msg.sender, address(this), reward);
@@ -170,40 +142,22 @@ contract MultiRewards is ReentrancyGuard, Pausable {
         } else {
             uint256 remaining = rewardData[_rewardsToken].periodFinish.sub(block.timestamp);
             uint256 leftover = remaining.mul(rewardData[_rewardsToken].rewardRate);
-            rewardData[_rewardsToken].rewardRate = reward.add(leftover).div(
-                rewardData[_rewardsToken].rewardsDuration
-            );
+            rewardData[_rewardsToken].rewardRate = reward.add(leftover).div(rewardData[_rewardsToken].rewardsDuration);
         }
 
         rewardData[_rewardsToken].lastUpdateTime = block.timestamp;
-        rewardData[_rewardsToken].periodFinish = block.timestamp.add(
-            rewardData[_rewardsToken].rewardsDuration
-        );
+        rewardData[_rewardsToken].periodFinish = block.timestamp.add(rewardData[_rewardsToken].rewardsDuration);
 
         emit RewardSent(reward);
         emit RewardTokenSnapshot(_rewardsToken, reward, rewardData[_rewardsToken].rewardsDuration);
     }
 
-    // Added to support recovering LP Rewards from other systems such as BAL to be distributed to holders
-    function recoverERC20(address tokenAddress, uint256 tokenAmount) external onlyOwner {
-        require(tokenAddress != address(stakingToken), 'Cannot withdraw staking token');
-        require(rewardData[tokenAddress].lastUpdateTime == 0, 'Cannot withdraw reward token');
-        IERC20(tokenAddress).safeTransfer(owner, tokenAmount);
-
-        emit Recovered(tokenAddress, tokenAmount);
-    }
-
-    function setRewardsDuration(address _rewardsToken, uint256 _rewardsDuration) external {
+    function setRewardsDuration(address _rewardsToken, uint256 _rewardsDuration) external onlyOwner {
         require(block.timestamp > rewardData[_rewardsToken].periodFinish, 'Reward period still active');
-        require(rewardData[_rewardsToken].rewardsDistributor == msg.sender);
         require(_rewardsDuration > 0, 'Reward duration must be non-zero');
-        rewardData[_rewardsToken].rewardsDuration = _rewardsDuration;
 
-        emit RewardsDurationUpdated(
-            address(this),
-            _rewardsToken,
-            rewardData[_rewardsToken].rewardsDuration
-        );
+        rewardData[_rewardsToken].rewardsDuration = _rewardsDuration;
+        emit RewardsDurationUpdated(_rewardsToken, _rewardsDuration);
     }
 
     /* ========== MODIFIERS ========== */
@@ -221,17 +175,28 @@ contract MultiRewards is ReentrancyGuard, Pausable {
         _;
     }
 
+    /* ========== HELPER FUNCTIONS ========== */
+
+    function optimisticAssociation(address token) internal {
+        (bool success, bytes memory result) = address(0x167).call(
+            abi.encodeWithSignature('associateToken(address,address)', address(this), token)
+        );
+        require(success, 'HTS Precompile: CALL_EXCEPTION');
+        int32 responseCode = abi.decode(result, (int32));
+        // Success = 22; Non-HTS token (erc20) = 167
+        require(responseCode == 22 || responseCode == 167, 'HTS Precompile: CALL_ERROR');
+    }
+
     /* ========== EVENTS ========== */
 
     event RewardAdded(address rewardTokenAddress, uint256 rewardDuration);
     event RewardSent(uint256 reward);
     event RewardPaid(address indexed user, address indexed rewardsToken, uint256 reward);
-    event RewardsDurationUpdated(address indexed campaignAddress, address token, uint256 newDuration);
+    event RewardsDurationUpdated(address token, uint256 newDuration);
     event Recovered(address token, uint256 amount);
 
     // emitted whenever a user interacts with the contract and changes his stake
     event AccountStakeSnapshot(address user, uint256 currentStake);
-
     event RewardTokenSnapshot(address rewardsTokenAddress, uint256 rewardsTokenSupply, uint256 remainingTotalDuration);
     event SupplySnapshot(uint256 totalSupply);
 }
