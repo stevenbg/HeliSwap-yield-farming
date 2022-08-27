@@ -16,10 +16,10 @@ contract Factory is Owned {
     /// @param _owner The owner to be set for the campaign
     /// @param _stakingToken The token that will be staked by users
     function deploy(address _owner, address _stakingToken) external onlyOwner {
-        MultiRewards newMultiRewardsContract = new MultiRewards(_owner, _stakingToken);
-        campaigns.push(newMultiRewardsContract);
+        MultiRewards newCampaign = new MultiRewards(_owner, _stakingToken);
+        campaigns.push(newCampaign);
 
-        emit CampaignDeployed(address(newMultiRewardsContract), _stakingToken);
+        emit CampaignDeployed(address(newCampaign), _stakingToken);
     }
 
     function getCampaignsLength() public view returns (uint256 count) {
