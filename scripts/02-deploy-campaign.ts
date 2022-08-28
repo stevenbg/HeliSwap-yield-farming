@@ -14,6 +14,7 @@ async function deployCampaignFromFactory(factory: string, owner: string, token: 
 
     const campaign = await Factory.campaigns(numberOfCampaigns - 1, { gasLimit: 50_000 });
     console.log('✅ MultiRewards contract deployed to:', campaign);
+    return campaign;
 }
 
 module.exports = deployCampaignFromFactory;

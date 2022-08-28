@@ -7,9 +7,12 @@ import './ReentrancyGuard.sol';
 import './interfaces/IERC20.sol';
 import './libraries/Math.sol';
 import './libraries/SafeMath.sol';
+import "./interfaces/IWHBAR.sol";
 
 contract MultiRewards is ReentrancyGuard, Pausable {
     using SafeMath for uint256;
+
+    IWHBAR public WHBAR;
 
     /* ========== STATE VARIABLES ========== */
 
@@ -34,8 +37,9 @@ contract MultiRewards is ReentrancyGuard, Pausable {
 
     /* ========== CONSTRUCTOR ========== */
 
-    constructor(address _owner, address _stakingToken) public Owned(_owner) {
+    constructor(address _owner, address _stakingToken, address _whbar) public Owned(_owner) {
         stakingToken = _stakingToken;
+        WHBAR = IWHBAR(_whbar);
     }
 
     /* ========== VIEWS ========== */
@@ -104,8 +108,12 @@ contract MultiRewards is ReentrancyGuard, Pausable {
             uint256 reward = rewards[msg.sender][_rewardsToken];
             if (reward > 0) {
                 rewards[msg.sender][_rewardsToken] = 0;
-                _safeTransfer(_rewardsToken, msg.sender, reward);
-
+                if (_rewardsToken == address(WHBAR)) {
+                    WHBAR.withdraw(reward);
+                    msg.sender.transfer(reward);
+                } else {
+                    _safeTransfer(_rewardsToken, msg.sender, reward);
+                }
                 emit RewardPaid(msg.sender, _rewardsToken, reward);
             }
         }

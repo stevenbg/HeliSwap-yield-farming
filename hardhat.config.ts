@@ -67,6 +67,16 @@ task('approveToken', 'Approves an HTS token for spending by an account')
         );
     });
 
+task('setupHbarCampaign', 'Deploys HBAR campaign')
+    .addParam('factory', 'Factory contract address')
+    .addParam('token', 'The staking token to user for the campaign')
+    .addParam('hbaramount', 'Amount of HBARs to distribute as rewards')
+    .addParam('duration', 'Duration of the campaign')
+    .setAction(async taskArgs => {
+        const setupHbarCampaign = require('./scripts/setup-hbar-campaign');
+        await setupHbarCampaign(taskArgs.factory, taskArgs.token, taskArgs.hbaramount, taskArgs.duration);
+    })
+
 module.exports = {
     solidity: {
         compilers: [
