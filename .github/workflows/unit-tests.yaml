@@ -26,7 +26,7 @@ jobs:
 
 
             - name: Install hedera-local node globally
-              run: yarn install -g git://github.com/hashgraph/hedera-local-node.git#main
+              run: yarn global add git://github.com/hashgraph/hedera-local-node.git#main
 
             - name: Start hedera-local node with 10 accounts
               run: npx hedera start --d
