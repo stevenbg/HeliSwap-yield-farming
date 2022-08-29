@@ -6,13 +6,13 @@ import hardhat from 'hardhat';
 const WHBAR_ADDRESS = '0x0000000000000000000000000000000002be8c90';
 
 async function deployFactory() {
-    const Factory = await hardhat.hethers.getContractFactory('Factory');
+  const Factory = await hardhat.hethers.getContractFactory('Factory');
 
-    console.log('⚙️ Deploying factory contract...');
-    const factory = await Factory.deploy(WHBAR_ADDRESS);
-    await factory.deployed();
+  console.log('⚙️ Deploying factory contract...');
+  const factory = await Factory.deploy(WHBAR_ADDRESS);
+  await factory.deployed();
 
-    console.log('✅ MultiRewards Factory contract deployed to:', factory.address);
+  console.log('✅ MultiRewards Factory contract deployed to:', factory.address);
 }
 
 module.exports = deployFactory;
