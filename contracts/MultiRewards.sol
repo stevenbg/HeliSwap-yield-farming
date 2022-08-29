@@ -7,7 +7,7 @@ import './ReentrancyGuard.sol';
 import './interfaces/IERC20.sol';
 import './libraries/Math.sol';
 import './libraries/SafeMath.sol';
-import "./interfaces/IWHBAR.sol";
+import './interfaces/IWHBAR.sol';
 
 contract MultiRewards is ReentrancyGuard, Pausable {
     using SafeMath for uint256;
@@ -37,7 +37,11 @@ contract MultiRewards is ReentrancyGuard, Pausable {
 
     /* ========== CONSTRUCTOR ========== */
 
-    constructor(address _owner, address _stakingToken, address _whbar) public Owned(_owner) {
+    constructor(
+        address _owner,
+        address _stakingToken,
+        address _whbar
+    ) public Owned(_owner) {
         stakingToken = _stakingToken;
         WHBAR = IWHBAR(_whbar);
     }
@@ -190,15 +194,26 @@ contract MultiRewards is ReentrancyGuard, Pausable {
         require(responseCode == 22 || responseCode == 167, 'HTS Precompile: CALL_ERROR');
     }
 
-    function _safeTransfer(address _token, address _to, uint _value) private {
+    function _safeTransfer(
+        address _token,
+        address _to,
+        uint256 _value
+    ) private {
         (bool success, bytes memory data) = _token.call(
-            abi.encodeWithSignature('transfer(address,uint256)', _to, _value));
+            abi.encodeWithSignature('transfer(address,uint256)', _to, _value)
+        );
         require(success && (data.length == 0 || abi.decode(data, (bool))), 'HTS Precompile: TRANSFER_FAILED');
     }
 
-    function _safeTransferFrom(address _token, address _from, address _to, uint _value) internal {
+    function _safeTransferFrom(
+        address _token,
+        address _from,
+        address _to,
+        uint256 _value
+    ) internal {
         (bool success, bytes memory data) = _token.call(
-            abi.encodeWithSignature('transferFrom(address,address,uint256)', _from, _to, _value));
+            abi.encodeWithSignature('transferFrom(address,address,uint256)', _from, _to, _value)
+        );
         require(success && (data.length == 0 || abi.decode(data, (bool))), 'HTS Precompile: TRANSFER_FROM_FAILED');
     }
 
