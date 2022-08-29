@@ -8,5 +8,13 @@
     "jsxSingleQuote": false,
     "tabWidth": 4,
     "trailingComma": "all",
-    "useTabs": false
+    "useTabs": false,
+    "overrides": [
+        {
+            "files": ["*.js", "*.ts", "*.json"],
+            "options": {
+                "tabWidth": 2
+            }
+        }
+    ]
 }

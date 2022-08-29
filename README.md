@@ -30,13 +30,11 @@ Arguments for deployment scripts
 
 ```
 --owner               -> Deployer address
---stakingtoken        -> Staking LP token address
---contractaddress     -> Deployed campaign address
---rewardaddress       -> Reward token address
---rewarddistributor   -> Same as deployed address
---rewardduration      -> Reward duration in seconds
---rewardamount        -> Reward amount
---rewarddecimals      -> Reward decimals
+--token               -> Staking LP token address
+--campaign            -> Deployed campaign address
+--reward              -> Reward token address
+--duration            -> Reward duration in seconds
+--amount              -> Reward amount
 --spenderaccountid    -> Deployed campaign id
 ```
 
