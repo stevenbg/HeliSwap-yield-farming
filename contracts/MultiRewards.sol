@@ -2,16 +2,14 @@
 
 pragma solidity 0.5.17;
 
-import './ReentrancyGuard.sol';
 import './Pausable.sol';
-import './libraries/Math.sol';
-import './libraries/SafeERC20.sol';
+import './ReentrancyGuard.sol';
 import './interfaces/IERC20.sol';
+import './libraries/Math.sol';
 import './libraries/SafeMath.sol';
 
 contract MultiRewards is ReentrancyGuard, Pausable {
     using SafeMath for uint256;
-    using SafeERC20 for IERC20;
 
     /* ========== STATE VARIABLES ========== */
 
@@ -23,7 +21,7 @@ contract MultiRewards is ReentrancyGuard, Pausable {
         uint256 rewardPerTokenStored;
     }
 
-    IERC20 public stakingToken;
+    address public stakingToken;
     mapping(address => Reward) public rewardData;
     address[] public rewardTokens;
 
@@ -37,7 +35,7 @@ contract MultiRewards is ReentrancyGuard, Pausable {
     /* ========== CONSTRUCTOR ========== */
 
     constructor(address _owner, address _stakingToken) public Owned(_owner) {
-        stakingToken = IERC20(_stakingToken);
+        stakingToken = _stakingToken;
     }
 
     /* ========== VIEWS ========== */
@@ -86,20 +84,18 @@ contract MultiRewards is ReentrancyGuard, Pausable {
         require(amount > 0, 'Cannot stake 0');
         _totalSupply = _totalSupply.add(amount);
         _balances[msg.sender] = _balances[msg.sender].add(amount);
-        stakingToken.safeTransferFrom(msg.sender, address(this), amount);
+        _safeTransferFrom(stakingToken, msg.sender, address(this), amount);
 
-        emit AccountStakeSnapshot(msg.sender, _balances[msg.sender]);
-        emit SupplySnapshot(_totalSupply);
+        emit Staked(msg.sender, amount, _balances[msg.sender], _totalSupply);
     }
 
     function withdraw(uint256 amount) public nonReentrant updateReward(msg.sender) {
         require(amount > 0, 'Cannot withdraw 0');
         _totalSupply = _totalSupply.sub(amount);
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
-        stakingToken.safeTransfer(msg.sender, amount);
+        _safeTransfer(stakingToken, msg.sender, amount);
 
-        emit AccountStakeSnapshot(msg.sender, _balances[msg.sender]);
-        emit SupplySnapshot(_totalSupply);
+        emit Withdrawn(msg.sender, amount, _balances[msg.sender], _totalSupply);
     }
 
     function getReward() public nonReentrant updateReward(msg.sender) {
@@ -108,7 +104,7 @@ contract MultiRewards is ReentrancyGuard, Pausable {
             uint256 reward = rewards[msg.sender][_rewardsToken];
             if (reward > 0) {
                 rewards[msg.sender][_rewardsToken] = 0;
-                IERC20(_rewardsToken).safeTransfer(msg.sender, reward);
+                _safeTransfer(_rewardsToken, msg.sender, reward);
 
                 emit RewardPaid(msg.sender, _rewardsToken, reward);
             }
@@ -122,42 +118,41 @@ contract MultiRewards is ReentrancyGuard, Pausable {
 
     /* ========== RESTRICTED FUNCTIONS ========== */
 
-    function addReward(address _rewardsToken, uint256 _rewardsDuration) external onlyOwner {
-        require(rewardData[_rewardsToken].rewardsDuration == 0);
-        rewardTokens.push(_rewardsToken);
-        rewardData[_rewardsToken].rewardsDuration = _rewardsDuration;
+    function enableReward(address _token, uint256 _duration) external onlyOwner {
+        require(rewardData[_token].rewardsDuration == 0);
+        rewardTokens.push(_token);
+        rewardData[_token].rewardsDuration = _duration;
 
-        optimisticAssociation(_rewardsToken);
+        optimisticAssociation(_token);
 
-        emit RewardAdded(_rewardsToken, _rewardsDuration);
+        emit RewardEnabled(_token, _duration);
     }
 
-    function notifyRewardAmount(address _rewardsToken, uint256 reward) external onlyOwner updateReward(address(0)) {
+    function notifyRewardAmount(address _token, uint256 _reward) external onlyOwner updateReward(address(0)) {
         // handle the transfer of reward tokens via `transferFrom` to reduce the number
         // of transactions required and ensure correctness of the reward amount
-        IERC20(_rewardsToken).safeTransferFrom(msg.sender, address(this), reward);
+        _safeTransferFrom(_token, msg.sender, address(this), _reward);
 
-        if (block.timestamp >= rewardData[_rewardsToken].periodFinish) {
-            rewardData[_rewardsToken].rewardRate = reward.div(rewardData[_rewardsToken].rewardsDuration);
+        if (block.timestamp >= rewardData[_token].periodFinish) {
+            rewardData[_token].rewardRate = _reward.div(rewardData[_token].rewardsDuration);
         } else {
-            uint256 remaining = rewardData[_rewardsToken].periodFinish.sub(block.timestamp);
-            uint256 leftover = remaining.mul(rewardData[_rewardsToken].rewardRate);
-            rewardData[_rewardsToken].rewardRate = reward.add(leftover).div(rewardData[_rewardsToken].rewardsDuration);
+            uint256 remaining = rewardData[_token].periodFinish.sub(block.timestamp);
+            uint256 leftover = remaining.mul(rewardData[_token].rewardRate);
+            rewardData[_token].rewardRate = _reward.add(leftover).div(rewardData[_token].rewardsDuration);
         }
 
-        rewardData[_rewardsToken].lastUpdateTime = block.timestamp;
-        rewardData[_rewardsToken].periodFinish = block.timestamp.add(rewardData[_rewardsToken].rewardsDuration);
+        rewardData[_token].lastUpdateTime = block.timestamp;
+        rewardData[_token].periodFinish = block.timestamp.add(rewardData[_token].rewardsDuration);
 
-        emit RewardSent(reward);
-        emit RewardTokenSnapshot(_rewardsToken, reward, rewardData[_rewardsToken].rewardsDuration);
+        emit RewardAdded(_token, _reward, rewardData[_token].rewardsDuration);
     }
 
-    function setRewardsDuration(address _rewardsToken, uint256 _rewardsDuration) external onlyOwner {
-        require(block.timestamp > rewardData[_rewardsToken].periodFinish, 'Reward period still active');
-        require(_rewardsDuration > 0, 'Reward duration must be non-zero');
+    function setRewardsDuration(address _token, uint256 _duration) external onlyOwner {
+        require(block.timestamp > rewardData[_token].periodFinish, 'Reward period still active');
+        require(_duration > 0, 'Reward duration must be non-zero');
 
-        rewardData[_rewardsToken].rewardsDuration = _rewardsDuration;
-        emit RewardsDurationUpdated(_rewardsToken, _rewardsDuration);
+        rewardData[_token].rewardsDuration = _duration;
+        emit RewardsDurationUpdated(_token, _duration);
     }
 
     /* ========== MODIFIERS ========== */
@@ -187,16 +182,24 @@ contract MultiRewards is ReentrancyGuard, Pausable {
         require(responseCode == 22 || responseCode == 167, 'HTS Precompile: CALL_ERROR');
     }
 
+    function _safeTransfer(address _token, address _to, uint _value) private {
+        (bool success, bytes memory data) = _token.call(
+            abi.encodeWithSignature('transfer(address,uint256)', _to, _value));
+        require(success && (data.length == 0 || abi.decode(data, (bool))), 'HTS Precompile: TRANSFER_FAILED');
+    }
+
+    function _safeTransferFrom(address _token, address _from, address _to, uint _value) internal {
+        (bool success, bytes memory data) = _token.call(
+            abi.encodeWithSignature('transferFrom(address,address,uint256)', _from, _to, _value));
+        require(success && (data.length == 0 || abi.decode(data, (bool))), 'HTS Precompile: TRANSFER_FROM_FAILED');
+    }
+
     /* ========== EVENTS ========== */
 
-    event RewardAdded(address rewardTokenAddress, uint256 rewardDuration);
-    event RewardSent(uint256 reward);
+    event RewardEnabled(address indexed token, uint256 duration);
+    event RewardAdded(address indexed token, uint256 reward, uint256 duration);
+    event Staked(address indexed user, uint256 amount, uint256 totalStakedByUser, uint256 totalStaked);
+    event Withdrawn(address indexed user, uint256 amount, uint256 totalStakedByUser, uint256 totalSupply);
     event RewardPaid(address indexed user, address indexed rewardsToken, uint256 reward);
-    event RewardsDurationUpdated(address token, uint256 newDuration);
-    event Recovered(address token, uint256 amount);
-
-    // emitted whenever a user interacts with the contract and changes his stake
-    event AccountStakeSnapshot(address user, uint256 currentStake);
-    event RewardTokenSnapshot(address rewardsTokenAddress, uint256 rewardsTokenSupply, uint256 remainingTotalDuration);
-    event SupplySnapshot(uint256 totalSupply);
+    event RewardsDurationUpdated(address indexed token, uint256 newDuration);
 }
