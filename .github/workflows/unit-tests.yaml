@@ -26,7 +26,11 @@ jobs:
 
 
             - name: Install hedera-local node globally
-              run: npm install -g git://github.com/hashgraph/hedera-local-node.git#main
+              run: npm install git://github.com/hashgraph/hedera-local-node.git#main --save-dev
+
+            - name: Change chain_id
+              run: cd ./node_modules/@hashgraph/hedera-local/compose-network/network-node/data/config && sed -i
+                's/296/298/' ./bootstrap.properties && cat bootstrap.properties
 
             - name: Start hedera-local node with 10 accounts
               run: npx hedera start --d
