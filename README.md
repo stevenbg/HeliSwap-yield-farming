@@ -75,3 +75,15 @@ Edit `--campaign`, `--reward` and `--amount` in `package.json`
 ```
 yarn sendReward
 ```
+
+## Running Tests
+
+In order for you to run tests, you must uncomment the line in `hardhat.config.ts`:
+```typescript
+// require('@hashgraph/hardhat-hethers'); // UNCOMMENT WHEN EXECUTING SCRIPTS; COMMENT WHEN RUNNING TESTS
+```
+and you must run the `hedera-local-node` prior to running the tests.
+Once you have both prerequisites done, you need to run:
+```
+npx hardhat test
+```
