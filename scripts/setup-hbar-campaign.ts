@@ -34,7 +34,7 @@ async function setupHbarCampaign(factory: string, token: string, hbarAmount: str
   await enableRewards(campaign, WHBAR_ADDRESS, duration);
 
   // 5. Send Rewards
-  await sendRewards(campaign, WHBAR_ADDRESS, hbarAmount, decimals);
+  await sendRewards(campaign, WHBAR_ADDRESS, hbarAmount);
 }
 
 module.exports = setupHbarCampaign;
