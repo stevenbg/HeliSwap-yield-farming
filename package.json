@@ -5,11 +5,12 @@
   "main": "index.js",
   "scripts": {
     "deployFactory": "npx hardhat deployFactory",
-    "deployCampaign": "npx hardhat deployCampaign --factory 0x0000000000000000000000000000000002dcd65c --owner 0x0000000000000000000000000000000002da202b --token 0x978264868aA0730718FBe0A3CCCF8C09f6eb74C3",
+    "deployCampaign": "npx hardhat deployCampaign --factory 0x0000000000000000000000000000000002dd972f --owner 0x0000000000000000000000000000000002da202b --token 0x978264868aA0730718FBe0A3CCCF8C09f6eb74C3",
     "enableReward": "npx hardhat enableReward --campaign 0x0000000000000000000000000000000002dcD66B --reward 0x0000000000000000000000000000000002dce0b7 --duration 2629743",
     "sendReward": "npx hardhat sendReward --campaign 0x0000000000000000000000000000000002dcD66B --reward 0x0000000000000000000000000000000002dce0b7 --amount 200000000000",
     "associateToken": "npx hardhat associateToken --accountid 0.0.47849515 --pk <PK> --tokenid 0.0.48029879",
-    "approveToken": "npx hardhat approveToken --accountid 0.0.47849515 --pk <PK> --spenderaccountid 0.0.48027243 --tokenid 0.0.48029879 --amount 200000000000"
+    "approveToken": "npx hardhat approveToken --accountid 0.0.47849515 --pk <PK> --spenderaccountid 0.0.48027243 --tokenid 0.0.48029879 --amount 200000000000",
+    "setupHbarCampaign": "npx hardhat setupHbarCampaign --factory 0x0000000000000000000000000000000002dd972f --token 0x978264868aA0730718FBe0A3CCCF8C09f6eb74C3 --hbaramount 100 --duration 1000"
   },
   "repository": "https://github.com/LimeChain/HeliSwap-yield-farming",
   "author": "Martin Dobrev",
