@@ -22,8 +22,11 @@ async function setupHbarCampaign(factory: string, token: string, hbarAmount: str
   await depositTx.wait();
   console.log(`Wrapped ${hbarAmount} of HBARs into WHBAR`);
 
+  const decimals = 8;
+  const hbarAmountWei = hardhat.hethers.utils.parseUnits(hbarAmount, decimals);
+
   // 3. Approve WHBARs
-  const approveTx = await WHBAR.approve(campaign, hbarAmount);
+  const approveTx = await WHBAR.approve(campaign, hbarAmountWei);
   await approveTx.wait();
   console.log(`Approved Campaign contract ${campaign} for ${hbarAmount} of WHBARs`);
 
@@ -31,7 +34,7 @@ async function setupHbarCampaign(factory: string, token: string, hbarAmount: str
   await enableRewards(campaign, WHBAR_ADDRESS, duration);
 
   // 5. Send Rewards
-  await sendRewards(campaign, WHBAR_ADDRESS, hbarAmount);
+  await sendRewards(campaign, WHBAR_ADDRESS, hbarAmount, decimals);
 }
 
 module.exports = setupHbarCampaign;
