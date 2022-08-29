@@ -30,36 +30,34 @@ Arguments for deployment scripts
 
 ```
 --owner               -> Deployer address
---stakingtoken        -> Staking LP token address
---contractaddress     -> Deployed campaign address
---rewardaddress       -> Reward token address
---rewarddistributor   -> Same as deployed address
---rewardduration      -> Reward duration in seconds
---rewardamount        -> Reward amount
---rewarddecimals      -> Reward decimals
+--token               -> Staking LP token address
+--campaign            -> Deployed campaign address
+--reward              -> Reward token address
+--duration            -> Reward duration in seconds
+--amount              -> Reward amount
 --spenderaccountid    -> Deployed campaign id
 ```
 
-1. Deploy factory
+1. Deploy Factory
 
 ```
 yarn deployFactory
 ```
 
-2. Deploy contract
+2. Deploy Campaign
 
-Edit `--factoryaddress`, `--owner` and `--stakingtoken` in `package.json`
-
-```
-yarn deployMultirewards
-```
-
-3. Add reward
-
-Edit `--contractaddress`, `--rewardaddress`, `--rewarddistributor` and `--rewardduration` in `package.json`
+Edit `--factory`, `--owner` and `--token` in `package.json`
 
 ```
-yarn addReward
+yarn deployCampaign
+```
+
+3. Enable Reward
+
+Edit `--campaign`, `--reward`, `--duration` in `package.json`
+
+```
+yarn enableReward
 ```
 
 4. Approve reward token
@@ -72,7 +70,7 @@ yarn approveToken
 
 5. Send rewards
 
-Edit `--contractaddress`, `--rewardaddress`, `--rewardamount` and `--rewarddecimals` in `package.json`
+Edit `--campaign`, `--reward` and `--amount` in `package.json`
 
 ```
 yarn sendReward

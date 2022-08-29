@@ -2,14 +2,13 @@
 import hardhat from 'hardhat';
 
 async function deployFactory() {
-  const MultiRewardsFactory = await hardhat.hethers.getContractFactory('MultiRewardsFactory');
+    const Factory = await hardhat.hethers.getContractFactory('Factory');
 
-  console.log('⚙️ Deploying factory contract...');
-  const multiRewardsFactory = await MultiRewardsFactory.deploy();
+    console.log('⚙️ Deploying factory contract...');
+    const factory = await Factory.deploy();
+    await factory.deployed();
 
-  await multiRewardsFactory.deployed();
-
-  console.log('✅ MultiRewards factory contract deployed to:', multiRewardsFactory.address);
+    console.log('✅ MultiRewards Factory contract deployed to:', factory.address);
 }
 
 module.exports = deployFactory;
