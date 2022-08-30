@@ -71,17 +71,17 @@ task('setupHbarCampaign', 'Deploys HBAR campaign')
     await setupHbarCampaign(taskArgs.factory, taskArgs.token, taskArgs.hbaramount, taskArgs.duration);
   });
 
-task('interact', 'Interact with multirewards contract')
+task('campaign-info', 'Interact with multirewards contract')
   .addParam('campaign', 'Contract address')
-  .addParam('walletaddress', 'Wallet address')
+  .addParam('walletAddress', 'Wallet address')
   .addParam('index', 'Reward index')
   .addParam('decimals', 'Reward token decimals')
   .setAction(async taskArgs => {
-    const { campaign, walletaddress, index, decimals } = taskArgs;
+    const { campaign, walletAddress, index, decimals } = taskArgs;
 
     const campaignDeploymentFromFactory = require('./scripts/05-multireward-interactions');
 
-    await campaignDeploymentFromFactory(campaign, walletaddress, index, decimals);
+    await campaignDeploymentFromFactory(campaign, walletAddress, index, decimals);
   });
 
 module.exports = {
