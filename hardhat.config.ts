@@ -2,7 +2,7 @@ import { task } from 'hardhat/config';
 import * as config from './config';
 import '@nomiclabs/hardhat-waffle';
 
-// require('@hashgraph/hardhat-hethers'); // UNCOMMENT WHEN EXECUTING SCRIPTS; COMMENT WHEN RUNNING TESTS
+require('@hashgraph/hardhat-hethers'); // UNCOMMENT WHEN EXECUTING SCRIPTS; COMMENT WHEN RUNNING TESTS
 
 task('deployFactory', 'Deploys an YF factory contract').setAction(async () => {
   const factoryDeployment = require('./scripts/01-deploy-factory');
