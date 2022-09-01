@@ -4,6 +4,8 @@ import { Contract } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { Utils } from '../utils/utils';
 import expectRevert = Utils.expectRevert;
+import { HTS } from '../utils/HTS';
+const IERC20 = require('./../artifacts/contracts/interfaces/IERC20.sol/IERC20.json').abi;
 
 describe('MultiRewards', () => {
 
@@ -407,6 +409,42 @@ describe('MultiRewards', () => {
         });
     });
 
+    describe('HBAR + HTS Asset campaign', async () => {
+
+        const REWARD_HTS = ethers.utils.parseUnits('8.6400', 8);
+        let htsToken: Contract;
+
+        beforeEach(async () => {
+            // THIS VALUE IS IN WEIBARS not TINYBARS!!!
+            const depositTx = await whbar.deposit({ value: REWARD_WEIBARS });
+            await depositTx.wait();
+
+            const approveTx = await whbar.approve(staking.address, REWARD_TINYBARS);
+            await approveTx.wait();
+
+            const enableHBARTx = await staking.enableReward(whbar.address, false, REWARD_DURATION);
+            await enableHBARTx.wait();
+
+            const notifyTx = await staking.notifyRewardAmount(whbar.address, REWARD_TINYBARS);
+            await notifyTx.wait();
+
+            const htsAddress = await HTS.deployMockWithSupply(REWARD_HTS.toNumber());
+            htsToken = new ethers.Contract(htsAddress, IERC20).connect(owner);
+
+            // Does not work due to local node
+            const enableHTSTx = await staking.enableReward(htsToken.address, true, REWARD_DURATION);
+            await enableHTSTx.wait();
+
+            // Does not work due to local node
+            const approveHtsTx = await htsToken.approve(staking.address, REWARD_HTS);
+            await approveHtsTx.wait();
+        });
+
+        it('should be able to setup HBAR + HTS rewards', async () => {
+            // TODO
+        })
+
+    })
 });
 
 function sleep(ms: number) {
