@@ -130,12 +130,14 @@ contract MultiRewards is ReentrancyGuard, Pausable {
 
     /* ========== RESTRICTED FUNCTIONS ========== */
 
-    function enableReward(address _token, uint256 _duration) external onlyOwner {
+    function enableReward(address _token, bool isHTS, uint256 _duration) external onlyOwner {
         require(rewardData[_token].rewardsDuration == 0);
         rewardTokens.push(_token);
         rewardData[_token].rewardsDuration = _duration;
 
-//        optimisticAssociation(_token); // TODO
+        if (isHTS) {
+            optimisticAssociation(_token);
+        }
         emit RewardEnabled(_token, _duration);
     }
 

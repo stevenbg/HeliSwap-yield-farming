@@ -98,7 +98,7 @@ describe('MultiRewards', () => {
     describe('WHBAR Campaign', () => {
 
         it('should enable WHBAR reward properly', async () => {
-            await expect(staking.enableReward(whbar.address, REWARD_DURATION))
+            await expect(staking.enableReward(whbar.address, false, REWARD_DURATION))
                 .to.emit(staking, 'RewardEnabled')
                 .withArgs(whbar.address, REWARD_DURATION);
 
@@ -107,7 +107,7 @@ describe('MultiRewards', () => {
         });
 
         it('non-owner should not be able to enable rewards', async () => {
-            await expectRevert(await staking.connect(staker).enableReward(whbar.address, REWARD_DURATION));
+            await expectRevert(await staking.connect(staker).enableReward(whbar.address, false, REWARD_DURATION));
         });
 
         describe('', () => {
@@ -120,7 +120,7 @@ describe('MultiRewards', () => {
                 const approveTx = await whbar.approve(staking.address, REWARD_TINYBARS);
                 await approveTx.wait();
 
-                const enableTx = await staking.enableReward(whbar.address, REWARD_DURATION);
+                const enableTx = await staking.enableReward(whbar.address, false, REWARD_DURATION);
                 await enableTx.wait();
             });
 

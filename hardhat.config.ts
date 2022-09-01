@@ -117,7 +117,7 @@ module.exports = {
     ],
   },
   networks: {
-    relay: {
+    local: {
       url: 'http://localhost:7546',
       chainId: 298,
       accounts: [
@@ -128,7 +128,7 @@ module.exports = {
       ]
     }
   },
-  defaultNetwork: 'relay',
+  defaultNetwork: 'local',
   hedera: {
     networks: config.networks,
     gasLimit: 2_000_000,
