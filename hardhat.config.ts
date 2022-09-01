@@ -71,6 +71,19 @@ task('setupHbarCampaign', 'Deploys HBAR campaign')
     await setupHbarCampaign(taskArgs.factory, taskArgs.token, taskArgs.hbaramount, taskArgs.duration);
   });
 
+task('campaign-info', 'Interact with multirewards contract')
+  .addParam('campaign', 'Contract address')
+  .addParam('walletAddress', 'Wallet address')
+  .addParam('index', 'Reward index')
+  .addParam('decimals', 'Reward token decimals')
+  .setAction(async taskArgs => {
+    const { campaign, walletAddress, index, decimals } = taskArgs;
+
+    const campaignDeploymentFromFactory = require('./scripts/05-multireward-interactions');
+
+    await campaignDeploymentFromFactory(campaign, walletAddress, index, decimals);
+  });
+
 module.exports = {
   solidity: {
     compilers: [
@@ -108,10 +121,10 @@ module.exports = {
       url: 'http://localhost:7546',
       chainId: 298,
       accounts: [
-        "0x105d050185ccb907fba04dd92d8de9e32c18305e097ab41dadda21489a211524",
-        "0x2e1d968b041d84dd120a5860cee60cd83f9374ef527ca86996317ada3d0d03e7",
-        "0x45a5a7108a18dd5013cf2d5857a28144beadc9c70b3bdbd914e38df4e804b8d8",
-        "0x6e9d61a325be3f6675cf8b7676c70e4a004d2308e3e182370a41f5653d52c6bd"
+        '0x105d050185ccb907fba04dd92d8de9e32c18305e097ab41dadda21489a211524',
+        '0x2e1d968b041d84dd120a5860cee60cd83f9374ef527ca86996317ada3d0d03e7',
+        '0x45a5a7108a18dd5013cf2d5857a28144beadc9c70b3bdbd914e38df4e804b8d8',
+        '0x6e9d61a325be3f6675cf8b7676c70e4a004d2308e3e182370a41f5653d52c6bd'
       ]
     }
   },
