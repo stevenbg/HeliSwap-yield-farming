@@ -224,4 +224,7 @@ contract MultiRewards is ReentrancyGuard, Pausable {
     event Withdrawn(address indexed user, uint256 amount, uint256 totalStakedByUser, uint256 totalSupply);
     event RewardPaid(address indexed user, address indexed rewardsToken, uint256 reward);
     event RewardsDurationUpdated(address indexed token, uint256 newDuration);
+
+    /// @dev Fallback function in case of WHBAR rewards. See {@getRewards}
+    function() external payable { }
 }
