@@ -8,7 +8,7 @@ async function getCampaignData(
 ) {
   const MultiRewardsContract = await hardhat.hethers.getContractAt('MultiRewards', campaignAddress);
 
-  console.log('⚙️ Calling Multirewards contract ...');
+  console.log('⚙️ Calling MultiRewards contract ...');
 
   const multiRewardsContractReward = await MultiRewardsContract.rewardTokens(rewardIndex);
   const multiRewardsContractUserBalance = await MultiRewardsContract.balanceOf(walletAddress);

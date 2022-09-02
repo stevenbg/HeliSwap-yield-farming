@@ -79,9 +79,9 @@ task('campaign-info', 'Interact with multirewards contract')
   .setAction(async taskArgs => {
     const { campaign, walletAddress, index, decimals } = taskArgs;
 
-    const campaignDeploymentFromFactory = require('./scripts/05-multireward-interactions');
+    const campaignInfo = require('./scripts/05-campaign-info');
 
-    await campaignDeploymentFromFactory(campaign, walletAddress, index, decimals);
+    await campaignInfo(campaign, walletAddress, index, decimals);
   });
 
 module.exports = {
