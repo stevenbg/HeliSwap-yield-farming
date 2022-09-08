@@ -71,6 +71,17 @@ task('setupHbarCampaign', 'Deploys HBAR campaign')
     await setupHbarCampaign(taskArgs.factory, taskArgs.token, taskArgs.hbaramount, taskArgs.duration);
   });
 
+task('setupHTSCampaign', 'Deploys HTS campaign')
+  .addParam('factory', 'Factory contract address')
+  .addParam('token', 'The staking token to user for the campaign')
+  .addParam('reward', 'The staking reward')
+  .addParam('amount', 'Amount of HBARs to distribute as rewards')
+  .addParam('duration', 'Duration of the campaign')
+  .setAction(async taskArgs => {
+    const setupHTSCampaign = require('./scripts/setup-hts-campaign');
+    await setupHTSCampaign(taskArgs.factory, taskArgs.token, taskArgs.reward, taskArgs.amount, taskArgs.duration);
+  });
+
 task('campaign-info', 'Interact with multirewards contract')
   .addParam('campaign', 'Contract address')
   .addParam('walletAddress', 'Wallet address')
