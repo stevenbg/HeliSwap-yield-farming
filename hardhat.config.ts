@@ -26,7 +26,7 @@ task('enableReward', 'Enable rewards to YF contract')
   .setAction(async taskArgs => {
     const { campaign, reward, duration } = taskArgs;
     const enableReward = require('./scripts/03-enable-rewards');
-    await enableReward(campaign, reward, duration);
+    await enableReward(campaign, reward, duration, true); // If adding non HTS token as as reward, set this to false
   });
 
 task('sendReward', 'Notify contract for YF rewards')
@@ -113,7 +113,7 @@ module.exports = {
             runs: 200,
           },
         },
-      }
+      },
     ],
   },
   networks: {
@@ -124,13 +124,13 @@ module.exports = {
         '0x105d050185ccb907fba04dd92d8de9e32c18305e097ab41dadda21489a211524',
         '0x2e1d968b041d84dd120a5860cee60cd83f9374ef527ca86996317ada3d0d03e7',
         '0x45a5a7108a18dd5013cf2d5857a28144beadc9c70b3bdbd914e38df4e804b8d8',
-        '0x6e9d61a325be3f6675cf8b7676c70e4a004d2308e3e182370a41f5653d52c6bd'
-      ]
-    }
+        '0x6e9d61a325be3f6675cf8b7676c70e4a004d2308e3e182370a41f5653d52c6bd',
+      ],
+    },
   },
   defaultNetwork: 'local',
   hedera: {
     networks: config.networks,
     gasLimit: 2_000_000,
-  }
+  },
 };
