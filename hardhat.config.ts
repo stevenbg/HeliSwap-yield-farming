@@ -82,6 +82,15 @@ task('setupHTSCampaign', 'Deploys HTS campaign')
     await setupHTSCampaign(taskArgs.factory, taskArgs.token, taskArgs.reward, taskArgs.amount, taskArgs.duration);
   });
 
+task('setupMultiRewardsCampaign', 'Deploys Multi Rewards campaign')
+  .addParam('factory', 'Factory contract address')
+  .addParam('token', 'The staking token to user for the campaign')
+  .addParam('duration', 'Duration of the campaign')
+  .setAction(async taskArgs => {
+    const setupMultiRewardsCampaign = require('./scripts/setup-multi-rewards-campaign');
+    await setupMultiRewardsCampaign(taskArgs.factory, taskArgs.token, taskArgs.duration);
+  });
+
 task('campaign-info', 'Interact with multirewards contract')
   .addParam('campaign', 'Contract address')
   .addParam('walletAddress', 'Wallet address')
