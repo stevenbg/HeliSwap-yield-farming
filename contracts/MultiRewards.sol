@@ -130,13 +130,14 @@ contract MultiRewards is ReentrancyGuard, Pausable {
 
     /* ========== RESTRICTED FUNCTIONS ========== */
 
-    function enableReward(address _token, uint256 _duration) external onlyOwner {
+    function enableReward(address _token, bool isHTS, uint256 _duration) external onlyOwner {
         require(rewardData[_token].rewardsDuration == 0);
         rewardTokens.push(_token);
         rewardData[_token].rewardsDuration = _duration;
 
-        optimisticAssociation(_token);
-
+        if (isHTS) {
+            optimisticAssociation(_token);
+        }
         emit RewardEnabled(_token, _duration);
     }
 
@@ -202,7 +203,7 @@ contract MultiRewards is ReentrancyGuard, Pausable {
         (bool success, bytes memory data) = _token.call(
             abi.encodeWithSignature('transfer(address,uint256)', _to, _value)
         );
-        require(success && (data.length == 0 || abi.decode(data, (bool))), 'HTS Precompile: TRANSFER_FAILED');
+        require(success && (data.length == 0 || abi.decode(data, (bool))), 'MULTI_REWARDS: TRANSFER_FAILED');
     }
 
     function _safeTransferFrom(
@@ -214,7 +215,7 @@ contract MultiRewards is ReentrancyGuard, Pausable {
         (bool success, bytes memory data) = _token.call(
             abi.encodeWithSignature('transferFrom(address,address,uint256)', _from, _to, _value)
         );
-        require(success && (data.length == 0 || abi.decode(data, (bool))), 'HTS Precompile: TRANSFER_FROM_FAILED');
+        require(success && (data.length == 0 || abi.decode(data, (bool))), 'MULTI_REWARDS: TRANSFER_FROM_FAILED');
     }
 
     /* ========== EVENTS ========== */
@@ -225,4 +226,7 @@ contract MultiRewards is ReentrancyGuard, Pausable {
     event Withdrawn(address indexed user, uint256 amount, uint256 totalStakedByUser, uint256 totalSupply);
     event RewardPaid(address indexed user, address indexed rewardsToken, uint256 reward);
     event RewardsDurationUpdated(address indexed token, uint256 newDuration);
+
+    /// @dev Fallback function in case of WHBAR rewards. See {@getRewards}
+    function() external payable { }
 }

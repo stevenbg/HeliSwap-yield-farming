@@ -5,13 +5,15 @@
   "main": "index.js",
   "scripts": {
     "deployFactory": "npx hardhat deployFactory --network testnet",
-    "deployCampaign": "npx hardhat deployCampaign --network testnet --factory 0x0000000000000000000000000000000002dd972f --owner 0x0000000000000000000000000000000002da202b --token 0x978264868aA0730718FBe0A3CCCF8C09f6eb74C3",
-    "enableReward": "npx hardhat enableReward --network testnet --campaign 0x0000000000000000000000000000000002dDB292 --reward 0x0000000000000000000000000000000002121D51 --duration 15552000",
-    "sendReward": "npx hardhat sendReward --network testnet --campaign 0x0000000000000000000000000000000002dDB292 --reward 0x0000000000000000000000000000000002121D51 --amount 1000000000",
-    "associateToken": "npx hardhat associateToken --network testnet --accountid 0.0.47849515 --pk <PK> --tokenid 0.0.48029879",
-    "approveToken": "npx hardhat approveToken --network testnet --accountid 0.0.34819565 --pk <PK> --spenderaccountid 0.0.48083602 --tokenid 0.0.34741585 --amount 1000000000",
-    "setupHbarCampaign": "npx hardhat setupHbarCampaign --network testnet --factory 0x0000000000000000000000000000000002dd972f --token 0x978264868aA0730718FBe0A3CCCF8C09f6eb74C3 --hbaramount 100 --duration 1000",
-    "campaignInfo": "npx hardhat campaign-info --network testnet --campaign 0x0000000000000000000000000000000002dDB292 --wallet-address 0x0000000000000000000000000000000002099E42 --index 0 --decimals 8"
+    "deployCampaign": "npx hardhat deployCampaign --network testnet --factory 0x0000000000000000000000000000000002dfa283 --owner 0x0000000000000000000000000000000002134dEd --token 0x0a06676Eb5144ad5451bE2Dec256dfeb07f20eb4",
+    "enableReward": "npx hardhat enableReward --network testnet --campaign 0x0000000000000000000000000000000002Df8A25 --reward 0x0000000000000000000000000000000002121D51 --duration 86400",
+    "sendReward": "npx hardhat sendReward --network testnet --campaign 0x0000000000000000000000000000000002Df8A25 --reward 0x0000000000000000000000000000000002121D51 --amount 86400000000",
+    "associateToken": "npx hardhat associateToken --network testnet --accountid 0.0.34819565 --pk <PK> --tokenid 0.0.34741685",
+    "approveToken": "npx hardhat approveToken --network testnet --accountid 0.0.34819565 --pk <PK> --spenderaccountid 0.0.48204325 --tokenid 0.0.34741585 --amount 10000000000000000000000000000000000",
+    "setupHbarCampaign": "npx hardhat setupHbarCampaign --network testnet --factory 0x0000000000000000000000000000000002dfa29c --token 0x2C83Ba76cAc02Ac91C83F1b6701F0BaaCc62f489 --hbaramount 2592 --duration 2592000",
+    "setupHTSCampaign": "npx hardhat setupHTSCampaign --network testnet --factory 0x0000000000000000000000000000000002dfa29c --token 0x2C83Ba76cAc02Ac91C83F1b6701F0BaaCc62f489 --reward 0x0000000000000000000000000000000002121D51 --amount 2592000000 --duration 2592000",
+    "setupMultiRewardsCampaign": "npx hardhat setupMultiRewardsCampaign --network testnet --factory 0x0000000000000000000000000000000002dfa29c --token 0x0a06676Eb5144ad5451bE2Dec256dfeb07f20eb4 --duration 86400",
+    "campaignInfo": "npx hardhat campaign-info --network testnet --campaign 0x0000000000000000000000000000000002Dfa86A --wallet-address 0x0000000000000000000000000000000002099E2a --index 0 --decimals 6"
   },
   "repository": "https://github.com/LimeChain/HeliSwap-yield-farming",
   "author": "Martin Dobrev",
@@ -27,13 +29,17 @@
     "@types/chai": "^4.2.0",
     "@types/mocha": "^9.1.0",
     "@types/node": ">=12.0.0",
-    "hardhat-typechain": "^0.3.3",
     "chai": "^4.3.4",
     "ethereum-waffle": "^3.4.0",
     "ethers": "^5.4.7",
     "hardhat": "^2.10.1",
+    "hardhat-typechain": "^0.3.3",
     "ts-node": ">=8.0.0",
     "typechain": "^8.1.0",
-    "typescript": ">=4.5.0"
+    "typescript": ">=4.5.0",
+    "whbar": "github:LimeChain/whbar"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.7.3"
   }
 }
