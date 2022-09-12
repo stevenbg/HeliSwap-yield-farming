@@ -68,11 +68,11 @@ async function setupMultiRewardsCampaign(factory: string, token: string, duratio
   // 5. Enable WHBAR Rewards
   await enableRewards(campaign, WHBAR_ADDRESS, duration);
 
-  // 6. Enable HTS Rewards
-  await enableRewards(campaign, idToAddress(rewardId), duration, true);
-
-  // 7. Send HBAR Rewards
+  // 6. Send HBAR Rewards
   await sendRewards(campaign, WHBAR_ADDRESS, hbarAmountWei);
+
+  // 7. Enable HTS Rewards
+  await enableRewards(campaign, idToAddress(rewardId), duration, true);
 
   // 8. Send HTS Rewards
   await sendRewards(campaign, idToAddress(rewardId), rewardAmount);
