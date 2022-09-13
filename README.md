@@ -4,6 +4,12 @@ Node version: `16.15.0`
 
 If you use another version, please use [n](https://github.com/tj/n) to manage.
 
+## ✍️ Mainnet Deployment Address
+
+`Factory: 0x0000000000000000000000000000000000134238`
+
+[See on Hashscan](https://hashscan.io/#/mainnet/contract/0.0.1262136)
+
 ## ⚙️ Installation
 
 ```
@@ -79,11 +85,14 @@ yarn sendReward
 ## Running Tests
 
 In order for you to run tests, you must uncomment the line in `hardhat.config.ts`:
+
 ```typescript
 // require('@hashgraph/hardhat-hethers'); // UNCOMMENT WHEN EXECUTING SCRIPTS; COMMENT WHEN RUNNING TESTS
 ```
+
 and you must run the `hedera-local-node` prior to running the tests.
 Once you have both prerequisites done, you need to run:
+
 ```
 npx hardhat test
 ```
