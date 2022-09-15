@@ -50,15 +50,15 @@ task('associateToken', 'Associates an HTS token')
   });
 
 task('approveToken', 'Approves an HTS token for spending by an account')
-  .addParam('accountid', 'The account that will give permission')
+  .addParam('account', 'The account that will give permission')
   .addParam('pk', 'The PK of the account that will permit')
-  .addParam('spenderaccountid', 'The account that will be permitted to spend tokens')
-  .addParam('tokenid', 'The token will be spent')
+  .addParam('spender', 'The account that will be permitted to spend tokens')
+  .addParam('token', 'The token will be spent')
   .addParam('amount', 'How many tokens will be spent')
   .setAction(async taskArgs => {
     console.log(taskArgs);
     const tokenApproval = require('./scripts/utils/approveToken');
-    await tokenApproval(taskArgs.accountid, taskArgs.pk, taskArgs.spenderaccountid, taskArgs.tokenid, taskArgs.amount);
+    await tokenApproval(taskArgs.account, taskArgs.pk, taskArgs.spender, taskArgs.token, taskArgs.amount);
   });
 
 task('setupHbarCampaign', 'Deploys HBAR campaign')
