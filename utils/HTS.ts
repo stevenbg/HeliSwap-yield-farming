@@ -12,7 +12,12 @@ const config = require('../hardhat.config');
 export namespace HTS {
 
     const DEFAULT_ACCOUNT = '0.0.0';
-    const DEPLOYER_ACC_ID = '0.0.1012'; // Hardcoded -> first ECDSA alias account from local node
+    const LOCAL_NODE_ACCOUNT_IDS = [
+        '0.0.1012',
+        '0.0.1013',
+        '0.0.1014',
+        '0.0.1015'
+    ];
 
     export async function deployMockWithSupply(supply: number) {
         const deployerPk = config.networks[hardhat.network.name].accounts[0];
@@ -32,7 +37,10 @@ export namespace HTS {
             .execute(client)
 
         const receipt = await tokenCreate.getReceipt(client);
-        return `0x${receipt.tokenId?.toSolidityAddress()}`;
+        return {
+            address: `0x${receipt.tokenId?.toSolidityAddress()}`,
+            tokenId: receipt.tokenId?.toString() || '0.0.0'
+        };
     }
 
     /**
@@ -68,7 +76,7 @@ export namespace HTS {
      * @param account the account we are associating
      * @param tokenId the id of the token which is getting associated
      */
-    export async function associate(
+    export async function associateWithTokenWithExplicitPK(
         pk: string,
         account: string,
         tokenId: string,
@@ -87,6 +95,27 @@ export namespace HTS {
     }
 
     /**
+     * Associates an HTS Token to a specified account
+     * @param accountIndex the index of the account within the hardhat accounts config that we want to execute the
+     * transaction with
+     * @param htsAddress the id of the token which is getting associated
+     */
+    export async function associateWithToken(accountIndex: number, htsAddress: string): Promise<void> {
+        const deployerPk = config.networks[hardhat.network.name].accounts[accountIndex];
+        const accountId = LOCAL_NODE_ACCOUNT_IDS[accountIndex];
+        const client = _clientFor(hardhat.network.name, deployerPk, accountId);
+
+        const tokenAssociate = await (
+            await new TokenAssociateTransaction()
+                .setAccountId(accountId)
+                .setTokenIds([htsAddress])
+                .freezeWith(client)
+                .sign(PrivateKey.fromStringECDSA(deployerPk))
+        ).execute(client);
+        await tokenAssociate.getReceipt(client);
+    }
+
+    /**
      * Returns Client for the specified network name
      * @param network
      * @param pk
@@ -99,7 +128,7 @@ export namespace HTS {
         if (network == "mainnet") client = Client.forMainnet();
         if (network == "local") client = Client.forNetwork({"127.0.0.1:50211": "0.0.3"})
 
-        if (client) return client.setOperator(acc || DEPLOYER_ACC_ID, pk);
+        if (client) return client.setOperator(acc || LOCAL_NODE_ACCOUNT_IDS[0], pk);
         throw Error("INVALID_NETWORK")
     }
 
