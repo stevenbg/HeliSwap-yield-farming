@@ -104,6 +104,18 @@ task('campaign-info', 'Interact with multirewards contract')
     await campaignInfo(campaign, walletAddress, index, decimals);
   });
 
+task('set-duration', 'Adjust the duration of a particular campaign')
+  .addParam('campaign', 'Campaign address')
+  .addParam('token', 'Reward address')
+  .addParam('duration', 'Duration by which the campaign will be extended')
+  .setAction(async taskArgs => {
+    const { campaign, token, duration } = taskArgs;
+
+    const setDuration = require('./scripts/set-rewards-duration');
+
+    await setDuration(campaign, token, duration);
+  });
+
 module.exports = {
   solidity: {
     compilers: [
