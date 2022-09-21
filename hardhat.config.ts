@@ -91,7 +91,7 @@ task('setupMultiRewardsCampaign', 'Deploys Multi Rewards campaign')
     await setupMultiRewardsCampaign(taskArgs.factory, taskArgs.token, taskArgs.duration);
   });
 
-task('campaign-info', 'Interact with multirewards contract')
+task('campaignInfo', 'Interact with multirewards contract')
   .addParam('campaign', 'Contract address')
   .addParam('walletAddress', 'Wallet address')
   .addParam('index', 'Reward index')
@@ -104,7 +104,7 @@ task('campaign-info', 'Interact with multirewards contract')
     await campaignInfo(campaign, walletAddress, index, decimals);
   });
 
-task('set-duration', 'Adjust the duration of a particular campaign')
+task('setDuration', 'Adjust the duration of a particular campaign')
   .addParam('campaign', 'Campaign address')
   .addParam('token', 'Reward address')
   .addParam('duration', 'Duration by which the campaign will be extended')
