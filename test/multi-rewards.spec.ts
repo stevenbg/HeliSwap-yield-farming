@@ -7,7 +7,8 @@ import expectRevert = Utils.expectRevert;
 import { HTS } from '../utils/HTS';
 const IERC20 = require('./../artifacts/contracts/interfaces/IERC20.sol/IERC20.json').abi;
 
-describe('MultiRewards', () => {
+describe('MultiRewards', function () {
+    this.timeout(60_000);
 
     let owner: SignerWithAddress, staker: SignerWithAddress, nonStaker: SignerWithAddress,
         anotherStaker: SignerWithAddress;
@@ -19,7 +20,7 @@ describe('MultiRewards', () => {
     const REWARD_DURATION = 3600; // 1 hour in seconds
     const REWARD_WEIBARS = ethers.utils.parseUnits('8.6400', 18); // 8.6400 HBARs
     const REWARD_TINYBARS = ethers.utils.parseUnits('8.6400', 8);
-    const REWARD_RATE = REWARD_TINYBARS.div(REWARD_DURATION); // 1 HBAR / sec
+    const HBAR_REWARD_RATE = REWARD_TINYBARS.div(REWARD_DURATION); // 1 HBAR / sec
 
     before(async () => {
         const signers = await ethers.getSigners();
@@ -140,7 +141,7 @@ describe('MultiRewards', () => {
                 const block = await ethers.provider.getBlock(tx.blockNumber);
 
                 const rewardData = await staking.rewardData(whbar.address);
-                expect(rewardData.rewardRate).to.equal(REWARD_RATE);
+                expect(rewardData.rewardRate).to.equal(HBAR_REWARD_RATE);
                 expect(rewardData.lastUpdateTime).to.equal(block.timestamp);
                 expect(rewardData.periodFinish).to.equal(block.timestamp + REWARD_DURATION);
             });
@@ -304,7 +305,7 @@ describe('MultiRewards', () => {
                     const rewardBlock = await ethers.provider.getBlock(getRewardTx.blockNumber);
 
                     const elapsedSeconds = rewardBlock.timestamp - stakeBlock.timestamp;
-                    const expectedReward = REWARD_RATE.mul(elapsedSeconds);
+                    const expectedReward = HBAR_REWARD_RATE.mul(elapsedSeconds);
                     const stakingWhbarBalanceAfter = await whbar.balanceOf(staking.address);
                     expect(stakingWhbarBalanceBefore.sub(expectedReward)).to.equal(stakingWhbarBalanceAfter);
                     expect(rewardTx.events[1].args.reward).to.equal(expectedReward);
@@ -323,7 +324,7 @@ describe('MultiRewards', () => {
                     const rewardBlock = await ethers.provider.getBlock(getRewardTx.blockNumber);
 
                     const elapsedSeconds = rewardBlock.timestamp - stakeBlock.timestamp;
-                    const expectedReward = REWARD_RATE.mul(elapsedSeconds);
+                    const expectedReward = HBAR_REWARD_RATE.mul(elapsedSeconds);
                     const stakingWhbarBalanceAfter = await whbar.balanceOf(staking.address);
                     expect(stakingWhbarBalanceBefore.sub(expectedReward)).to.equal(stakingWhbarBalanceAfter);
                     expect(rewardTx.events[1].args.reward).to.equal(expectedReward);
@@ -337,53 +338,26 @@ describe('MultiRewards', () => {
                     await approveTx.wait();
 
                     const stakingWhbarBalanceBefore = await whbar.balanceOf(staking.address);
-                    // 1. Stake 1 WEI from Staker#1
-                    const staker1StakeTx = await staking.connect(staker).stake(1);
-                    await staker1StakeTx.wait();
-                    const staker1StakeTxBlock = await ethers.provider.getBlock(staker1StakeTx.blockNumber);
-                    const staker1StakeTxTs = staker1StakeTxBlock.timestamp;
 
-                    await sleep(1_000);
+                    const {
+                        staker1RewardTx,
+                        staker2RewardTx,
+                        elapsedSecondsSolo,
+                        elapsedSecondsTogether,
+                        elapsedSecondsSolo2,
+                    } = await stakeWithdrawCycleFor2Stakers();
 
-                    // 2. Stake 10 WEI from Staker#2
-                    const staker2StakeTx = await staking.connect(anotherStaker).stake(2);
-                    await staker2StakeTx.wait();
-                    const staker2StakeTxBlock = await ethers.provider.getBlock(staker2StakeTx.blockNumber);
-                    const staker2StakeTxTs = staker2StakeTxBlock.timestamp;
-
-                    await sleep(1_000);
-
-                    // 3. Withdraw Reward from Staker#2
-                    const withdraw2Tx = await staking.connect(anotherStaker).withdraw(2);
-                    await withdraw2Tx.wait();
-                    const withdraw2Block = await ethers.provider.getBlock(withdraw2Tx.blockNumber);
-                    const withdraw2BlockTs = withdraw2Block.timestamp;
-
-                    // 4. Get Reward from Staker#1
-                    const reward1Tx = await staking.connect(staker).getReward();
-                    const reward1MinedTx = await reward1Tx.wait();
-                    const reward1TxBlock = await ethers.provider.getBlock(reward1Tx.blockNumber);
-                    const reward1TxTs = reward1TxBlock.timestamp;
-
-                    // 5. Get Reward from Staker#2
-                    const reward2Tx = await staking.connect(anotherStaker).getReward();
-                    const reward2MinedTx = await reward2Tx.wait();
-
-                    const elapsedSecondsSolo = staker2StakeTxTs - staker1StakeTxTs;
-                    const elapsedSecondsTogether = withdraw2BlockTs - staker2StakeTxTs;
-                    const elapsedSecondsSolo2 = reward1TxTs - withdraw2BlockTs;
-
-                    const staker1SharedRate = REWARD_RATE.div(3);
-                    const staker2SharedRate = REWARD_RATE.sub(staker1SharedRate);
-                    const staker1ExpectedReward = REWARD_RATE.mul(elapsedSecondsSolo + elapsedSecondsSolo2)
+                    const staker1SharedRate = HBAR_REWARD_RATE.div(3);
+                    const staker2SharedRate = HBAR_REWARD_RATE.sub(staker1SharedRate);
+                    const staker1ExpectedReward = HBAR_REWARD_RATE.mul(elapsedSecondsSolo + elapsedSecondsSolo2)
                         .add((staker1SharedRate).mul(elapsedSecondsTogether));
                     const staker2ExpectedReward = staker2SharedRate.mul(elapsedSecondsTogether);
 
                     const stakingWhbarBalanceAfter = await whbar.balanceOf(staking.address);
                     expect(stakingWhbarBalanceBefore.sub(staker1ExpectedReward).sub(staker2ExpectedReward))
                         .to.equal(stakingWhbarBalanceAfter);
-                    expect(reward1MinedTx.events[1].args.reward).to.equal(staker1ExpectedReward);
-                    expect(reward2MinedTx.events[1].args.reward).to.equal(staker2ExpectedReward);
+                    expect(staker1RewardTx.events[1].args.reward).to.equal(staker1ExpectedReward);
+                    expect(staker2RewardTx.events[1].args.reward).to.equal(staker2ExpectedReward);
                 });
 
                 it('should be able to exit', async () => {
@@ -402,7 +376,7 @@ describe('MultiRewards', () => {
                     expect(balanceOfStaker).to.equal(ethers.utils.parseEther('1'));
                     expect(await staking.totalSupply()).to.equal(0);
                     expect(await staking.balanceOf(staker.address)).to.equal(0);
-                    const expectedReward = REWARD_RATE.mul(exitTxTs - stakingTxTs);
+                    const expectedReward = HBAR_REWARD_RATE.mul(exitTxTs - stakingTxTs);
                     expect(await whbar.balanceOf(staking.address)).to.equal(whbarBalanceBefore.sub(expectedReward));
                 });
             });
@@ -411,7 +385,8 @@ describe('MultiRewards', () => {
 
     describe('HBAR + HTS Asset campaign', async () => {
 
-        const REWARD_HTS = ethers.utils.parseUnits('8.6400', 8);
+        const REWARD_HTS = ethers.utils.parseUnits('16', 8);
+        const HTS_REWARD_RATE = REWARD_HTS.div(REWARD_DURATION);
         let htsToken: Contract;
 
         beforeEach(async () => {
@@ -428,27 +403,134 @@ describe('MultiRewards', () => {
             const notifyTx = await staking.notifyRewardAmount(whbar.address, REWARD_TINYBARS);
             await notifyTx.wait();
 
-            const htsAddress = await HTS.deployMockWithSupply(REWARD_HTS.toNumber());
+            const { address: htsAddress, tokenId } = await HTS.deployMockWithSupply(REWARD_HTS.toNumber());
             htsToken = new ethers.Contract(htsAddress, IERC20).connect(owner);
 
-            // Does not work due to local node
-            const enableHTSTx = await staking.enableReward(htsToken.address, true, REWARD_DURATION);
+            const enableHTSTx = await staking.enableReward(htsToken.address, true, REWARD_DURATION, { gasLimit: 9_000_000 });
             await enableHTSTx.wait();
 
-            // Does not work due to local node
-            const approveHtsTx = await htsToken.approve(staking.address, REWARD_HTS);
+            const approveHtsTx = await htsToken.approve(staking.address, REWARD_HTS, { gasLimit: 9_000_000 });
             await approveHtsTx.wait();
+
+            const notifyHTSTx = await staking.notifyRewardAmount(htsAddress, REWARD_HTS);
+            await notifyHTSTx.wait();
+            // Mint Stakers LP tokens
+            const tx1Mint = await lpToken.mint(staker.address, ethers.utils.parseEther('1'));
+            await tx1Mint.wait();
+            const tx2Mint = await lpToken.mint(anotherStaker.address, ethers.utils.parseEther('1'));
+            await tx2Mint.wait();
+
+            // Approve Stakers LP tokens
+            const tx1Approve = await lpToken.connect(staker).approve(staking.address, ethers.utils.parseEther('1'));
+            await tx1Approve.wait();
+
+            const tx2Approve = await lpToken.connect(anotherStaker)
+                .approve(staking.address, ethers.utils.parseEther('1'));
+            await tx2Approve.wait();
+
+            // Associate Staker#1 with HTS reward token
+            await HTS.associateWithToken(1, tokenId);
+
+            // Associate Staker#2 with HTS reward token
+            await HTS.associateWithToken(3, tokenId);
         });
 
         it('should be able to setup HBAR + HTS rewards', async () => {
-            // TODO
-        })
+            const stakingWhbarBalanceBefore = await whbar.balanceOf(staking.address);
+            const stakingHTSBalanceBefore = await htsToken.balanceOf(staking.address);
 
+            const {
+                staker1RewardTx,
+                staker2RewardTx,
+                elapsedSecondsSolo,
+                elapsedSecondsTogether,
+                elapsedSecondsSolo2,
+            } = await stakeWithdrawCycleFor2Stakers();
+
+            // Assert HBAR Rewards
+            const staker1SharedHBARRate = HBAR_REWARD_RATE.div(3);
+            const staker2SharedHBARRate = HBAR_REWARD_RATE.sub(staker1SharedHBARRate);
+            const staker1ExpectedHBARReward = HBAR_REWARD_RATE.mul(elapsedSecondsSolo + elapsedSecondsSolo2)
+                .add((staker1SharedHBARRate).mul(elapsedSecondsTogether));
+            const staker2ExpectedHBARReward = staker2SharedHBARRate.mul(elapsedSecondsTogether);
+
+            const stakingWhbarBalanceAfter = await whbar.balanceOf(staking.address);
+            const stakingHTSBalanceAfter = await htsToken.balanceOf(staking.address);
+
+            const staker1HbarRewardEvent = findEvent(staker1RewardTx.events, 'RewardPaid', whbar.address);
+            const staker2HbarRewardEvent = findEvent(staker2RewardTx.events, 'RewardPaid', whbar.address);
+
+            expect(stakingWhbarBalanceBefore.sub(staker1ExpectedHBARReward).sub(staker2ExpectedHBARReward))
+                .to.equal(stakingWhbarBalanceAfter);
+            expect(staker1HbarRewardEvent.args.reward).to.equal(staker1ExpectedHBARReward);
+            expect(staker2HbarRewardEvent.args.reward).to.equal(staker2ExpectedHBARReward);
+
+            // Assert HTS Rewards
+            const staker1SharedHTSRate = HTS_REWARD_RATE.div(3);
+            const staker2SharedHTSRate = HTS_REWARD_RATE.sub(staker1SharedHTSRate);
+
+            const staker1ExpectedHTSReward = HTS_REWARD_RATE.mul(elapsedSecondsSolo + elapsedSecondsSolo2)
+                .add((staker1SharedHTSRate).mul(elapsedSecondsTogether));
+            const staker2ExpectedHTSReward = staker2SharedHTSRate.mul(elapsedSecondsTogether);
+
+            const staker1HTSRewardEvent = findEvent(staker1RewardTx.events, 'RewardPaid', htsToken.address);
+            const staker2HTSRewardEvent = findEvent(staker2RewardTx.events, 'RewardPaid', htsToken.address);
+
+            expect(stakingHTSBalanceBefore.sub(staker1ExpectedHTSReward).sub(staker2ExpectedHTSReward))
+                .to.equal(stakingHTSBalanceAfter);
+            expect(staker1HTSRewardEvent.args.reward).to.equal(staker1ExpectedHTSReward);
+            expect(staker2HTSRewardEvent.args.reward).to.equal(staker2ExpectedHTSReward);
+        })
     })
+
+    async function stakeWithdrawCycleFor2Stakers() {
+        // 1. Stake 1 WEI from Staker#1
+        const staker1StakeTx = await staking.connect(staker).stake(1);
+        await staker1StakeTx.wait();
+        const staker1StakeTxBlock = await ethers.provider.getBlock(staker1StakeTx.blockNumber);
+        const staker1StakeTxTs = staker1StakeTxBlock.timestamp;
+
+        await sleep(1_000);
+
+        // 2. Stake 2 WEI from Staker#2
+        const staker2StakeTx = await staking.connect(anotherStaker).stake(2);
+        await staker2StakeTx.wait();
+        const staker2StakeTxBlock = await ethers.provider.getBlock(staker2StakeTx.blockNumber);
+        const staker2StakeTxTs = staker2StakeTxBlock.timestamp;
+
+        await sleep(1_000);
+
+        // 3. Withdraw Reward from Staker#2
+        const withdraw2Tx = await staking.connect(anotherStaker).withdraw(2);
+        await withdraw2Tx.wait();
+        const withdraw2Block = await ethers.provider.getBlock(withdraw2Tx.blockNumber);
+        const withdraw2BlockTs = withdraw2Block.timestamp;
+
+        // 4. Get Reward from Staker#1
+        const reward1Tx = await staking.connect(staker).getReward();
+        const staker1RewardTx = await reward1Tx.wait();
+        const reward1TxBlock = await ethers.provider.getBlock(reward1Tx.blockNumber);
+        const reward1TxTs = reward1TxBlock.timestamp;
+
+        // 5. Get Reward from Staker#2
+        const reward2Tx = await staking.connect(anotherStaker).getReward();
+        const staker2RewardTx = await reward2Tx.wait();
+
+        const elapsedSecondsSolo = staker2StakeTxTs - staker1StakeTxTs;
+        const elapsedSecondsTogether = withdraw2BlockTs - staker2StakeTxTs;
+        const elapsedSecondsSolo2 = reward1TxTs - withdraw2BlockTs;
+        return { staker1RewardTx, staker2RewardTx, elapsedSecondsSolo, elapsedSecondsTogether, elapsedSecondsSolo2 };
+    }
 });
 
 function sleep(ms: number) {
     return new Promise((resolve) => {
         setTimeout(resolve, ms);
     });
+}
+
+function findEvent(events: any, name: string, rewardToken: string): any {
+    return (events.filter((e: any) => {
+        return e.event == name && e.args.rewardsToken == rewardToken;
+    }))[0];
 }
