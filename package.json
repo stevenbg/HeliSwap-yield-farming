@@ -13,7 +13,8 @@
     "setupHbarCampaign": "npx hardhat setupHbarCampaign --network testnet --factory 0x0000000000000000000000000000000002dfa29c --token 0x2C83Ba76cAc02Ac91C83F1b6701F0BaaCc62f489 --hbaramount 2592 --duration 2592000",
     "setupHTSCampaign": "npx hardhat setupHTSCampaign --network testnet --factory 0x0000000000000000000000000000000002dfa29c --token 0x2C83Ba76cAc02Ac91C83F1b6701F0BaaCc62f489 --reward 0x0000000000000000000000000000000002121D51 --amount 2592000000 --duration 2592000",
     "setupMultiRewardsCampaign": "npx hardhat setupMultiRewardsCampaign --network testnet --factory 0x0000000000000000000000000000000002dfa29c --token 0x0a06676Eb5144ad5451bE2Dec256dfeb07f20eb4 --duration 86400",
-    "campaignInfo": "npx hardhat campaign-info --network testnet --campaign 0x0000000000000000000000000000000002Dfa86A --wallet-address 0x0000000000000000000000000000000002099E2a --index 0 --decimals 6"
+    "campaignInfo": "npx hardhat campaignInfo --network testnet --campaign 0x0000000000000000000000000000000002Df8A25 --wallet-address 0x0000000000000000000000000000000002099E2a --index 0 --decimals 6",
+    "setDuration": "npx hardhat setDuration --network testnet --campaign 0x0000000000000000000000000000000002Df8A25 --token 0x0000000000000000000000000000000002121D51 --duration 600"
   },
   "repository": "https://github.com/LimeChain/HeliSwap-yield-farming",
   "author": "Martin Dobrev",

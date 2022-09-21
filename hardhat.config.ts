@@ -91,7 +91,7 @@ task('setupMultiRewardsCampaign', 'Deploys Multi Rewards campaign')
     await setupMultiRewardsCampaign(taskArgs.factory, taskArgs.token, taskArgs.duration);
   });
 
-task('campaign-info', 'Interact with multirewards contract')
+task('campaignInfo', 'Interact with multirewards contract')
   .addParam('campaign', 'Contract address')
   .addParam('walletAddress', 'Wallet address')
   .addParam('index', 'Reward index')
@@ -102,6 +102,18 @@ task('campaign-info', 'Interact with multirewards contract')
     const campaignInfo = require('./scripts/05-campaign-info');
 
     await campaignInfo(campaign, walletAddress, index, decimals);
+  });
+
+task('setDuration', 'Adjust the duration of a particular campaign')
+  .addParam('campaign', 'Campaign address')
+  .addParam('token', 'Reward address')
+  .addParam('duration', 'Duration by which the campaign will be extended')
+  .setAction(async taskArgs => {
+    const { campaign, token, duration } = taskArgs;
+
+    const setDuration = require('./scripts/set-rewards-duration');
+
+    await setDuration(campaign, token, duration);
   });
 
 module.exports = {
