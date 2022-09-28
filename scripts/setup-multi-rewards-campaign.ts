@@ -17,25 +17,24 @@ export const addressToId = (tokenAddress: string) => {
 // Canonical WHBAR Address on Testnet
 // Reference https://github.com/LimeChain/whbar
 const WHBAR_ADDRESS = '0x0000000000000000000000000000000002be8c90';
-const DEFAULT_STAKING_TOKEN = '0.0.34741585';
-const DEFAULT_TOKEN_REWARD_AMOUNT = '8640000000';
-const DEFAULT_HBAR_REWARD_AMOUNT = '864';
-
+const DEFAULT_TOKEN_REWARD = '0.0.34741585';
+const DEFAULT_TOKEN_REWARD_AMOUNT = '10000000000';
+const DEFAULT_HBAR_REWARD_AMOUNT = '1000';
 
 async function setupMultiRewardsCampaign(
-    factory: string,
-    rewardToken: string,
-    duration: string,
-    stakingToken = DEFAULT_STAKING_TOKEN,
-    rewardTokenAmount = DEFAULT_TOKEN_REWARD_AMOUNT,
-    rewardHBARAmount = DEFAULT_HBAR_REWARD_AMOUNT) {
-
+  factory: string,
+  stakingToken: string,
+  duration: string,
+  rewardToken = DEFAULT_TOKEN_REWARD,
+  rewardTokenAmount = DEFAULT_TOKEN_REWARD_AMOUNT,
+  rewardHBARAmount = DEFAULT_HBAR_REWARD_AMOUNT,
+) {
   const deployer = (await hardhat.hethers.getSigners())[0];
   const deployerId = hardhat.hethers.utils.asAccountString(deployer.address);
   const deployerPk = deployer.identity.privateKey;
 
   // 1. Deploy new Campaign
-  const campaign = await deployCampaignFromFactory(factory, deployer.address, rewardToken);
+  const campaign = await deployCampaignFromFactory(factory, deployer.address, stakingToken);
 
   const campaignId = addressToId(campaign);
 
@@ -55,7 +54,7 @@ async function setupMultiRewardsCampaign(
   console.log(`Approved Campaign contract ${campaign} for ${rewardHBARAmount} of WHBARs`);
 
   // 4. Approve HTS Reward
-  await approveToken(deployerId, deployerPk, campaignId, stakingToken, rewardTokenAmount);
+  await approveToken(deployerId, deployerPk, campaignId, rewardToken, rewardTokenAmount);
   console.log(`Approved Campaign contract ${campaign} for ${rewardTokenAmount} of Reward`);
 
   // 5. Enable WHBAR Rewards
@@ -65,10 +64,10 @@ async function setupMultiRewardsCampaign(
   await sendRewards(campaign, WHBAR_ADDRESS, hbarAmountWei);
 
   // 7. Enable HTS Rewards
-  await enableRewards(campaign, idToAddress(stakingToken), duration, true);
+  await enableRewards(campaign, idToAddress(rewardToken), duration, true);
 
   // 8. Send HTS Rewards
-  await sendRewards(campaign, idToAddress(stakingToken), rewardTokenAmount);
+  await sendRewards(campaign, idToAddress(rewardToken), rewardTokenAmount);
 }
 
 module.exports = setupMultiRewardsCampaign;
