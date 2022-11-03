@@ -8,7 +8,7 @@ If you use another version, please use [n](https://github.com/tj/n) to manage.
 
 `Factory: 0x0000000000000000000000000000000000134238`
 
-[See on Hashscan](https://hashscan.io/#/mainnet/contract/0.0.1262136)
+[See on Hashscan](https://hashscan.io/mainnet/contract/0.0.1262136)
 
 ## ⚙️ Installation
 
