@@ -23,10 +23,11 @@ task('enableReward', 'Enable rewards to YF contract')
   .addParam('campaign', 'Campaign address')
   .addParam('reward', 'Reward address')
   .addParam('duration', 'Duration in seconds')
+  .addParam('hts', "Whether the reward is HTS")
   .setAction(async taskArgs => {
-    const { campaign, reward, duration } = taskArgs;
+    const { campaign, reward, duration, hts } = taskArgs;
     const enableReward = require('./scripts/03-enable-rewards');
-    await enableReward(campaign, reward, duration, true); // If adding non HTS token as as reward, set this to false
+    await enableReward(campaign, reward, duration, hts); // If adding non HTS token as as reward, set this to false
   });
 
 task('sendReward', 'Notify contract for YF rewards')
@@ -116,6 +117,16 @@ task('setDuration', 'Adjust the duration of a particular campaign')
     await setDuration(campaign, token, duration);
   });
 
+task('extendCampaign')
+    .addParam('campaign')
+    .addParam('token')
+    .addParam('duration')
+    .addParam('reward')
+    .setAction(async taskArgs => {
+        const extendCampaign = require('./scripts/06-extend-campaign');
+        await extendCampaign(taskArgs.campaign, taskArgs.token, taskArgs.duration, taskArgs.reward)
+    })
+
 module.exports = {
   solidity: {
     compilers: [
@@ -158,7 +169,7 @@ module.exports = {
         '0x45a5a7108a18dd5013cf2d5857a28144beadc9c70b3bdbd914e38df4e804b8d8',
         '0x6e9d61a325be3f6675cf8b7676c70e4a004d2308e3e182370a41f5653d52c6bd',
       ],
-    },
+    }
   },
   defaultNetwork: 'local',
   hedera: {
