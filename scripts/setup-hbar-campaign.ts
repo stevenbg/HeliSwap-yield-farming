@@ -7,7 +7,7 @@ const sendRewards = require('./04-send-reward');
 
 // Canonical WHBAR Address on Testnet
 // Reference https://github.com/LimeChain/whbar
-const WHBAR_ADDRESS = '0x0000000000000000000000000000000002be8c90';
+const WHBAR_ADDRESS = '0x0000000000000000000000000000000000001c3D';
 
 async function setupHbarCampaign(factory: string, token: string, hbarAmount: string, duration: string) {
   const deployer = (await hardhat.hethers.getSigners())[0];

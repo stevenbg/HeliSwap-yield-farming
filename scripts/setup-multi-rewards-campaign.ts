@@ -16,7 +16,7 @@ export const addressToId = (tokenAddress: string) => {
 
 // Canonical WHBAR Address on Testnet
 // Reference https://github.com/LimeChain/whbar
-const WHBAR_ADDRESS = '0x0000000000000000000000000000000002be8c90';
+const WHBAR_ADDRESS = '0x0000000000000000000000000000000000001c3D';
 const DEFAULT_TOKEN_REWARD = '0.0.34741585';
 const DEFAULT_TOKEN_REWARD_AMOUNT = '10000000000';
 const DEFAULT_HBAR_REWARD_AMOUNT = '1000';
