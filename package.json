@@ -5,17 +5,17 @@
   "main": "index.js",
   "scripts": {
     "deployFactory": "npx hardhat deployFactory --network mainnet",
-    "deployCampaign": "npx hardhat deployCampaign --network mainnet --token 0xe001dDE8f149a96B658ED8C6875a74C445927cdC",
+    "deployCampaign": "npx hardhat deployCampaign --network mainnet --token 0x9D87DfFB6b4c9D01F9545b49642ff6b0bBBFc3A4 --factory 0x0000000000000000000000000000000000134238 --owner 0x0000000000000000000000000000000000143227",
     "enableReward": "npx hardhat enableReward --network mainnet --campaign 0x0000000000000000000000000000000000143549 --reward 0x00000000000000000000000000000000000f7e89 --duration 86400 --hts false",
     "sendReward": "npx hardhat sendReward --network mainnet --campaign 0x0000000000000000000000000000000000143549 --reward 0x00000000000000000000000000000000000f7e89 --amount 100000000",
     "associateToken": "npx hardhat associateToken --network mainnet --accountid 0.0.1323559 --pk --tokenid 0.0.127877",
     "approveToken": "npx hardhat approveToken --network mainnet --account 0.0.47849515 --pk <PK> --spender 0.0.534359 --token 0.0.34741685 --amount 10000000000000000000000000000000000",
-    "setupHbarCampaign": "npx hardhat setupHbarCampaign --network mainnet --campaign 0x0000000000000000000000000000000000151255 --hbaramount 400000 --duration 1037087",
-    "setupHTSCampaign": "npx hardhat setupHTSCampaign --network mainnet --reward 0x0000000000000000000000000000000000107d76 --amount 18472100000000 --duration 1037087",
+    "setupHbarCampaign": "npx hardhat setupHbarCampaign --network mainnet --campaign 0x00000000000000000000000000000000001e7033 --hbaramount 228 --duration 613913",
+    "setupHTSCampaign": "npx hardhat setupHTSCampaign --network mainnet --campaign 0x000000000000000000000000000000000016a987 --reward 0x00000000000000000000000000000000001d90C9 --amount 114200000000 --duration 612000",
     "setupMultiRewardsCampaign": "npx hardhat setupMultiRewardsCampaign --network testnet --factory 0x0000000000000000000000000000000002dfa29c --token 0x0a06676Eb5144ad5451bE2Dec256dfeb07f20eb4 --duration 86400",
-    "campaignInfo": "npx hardhat campaignInfo --network mainnet --campaign 0x0000000000000000000000000000000000143702",
-    "setDuration": "npx hardhat setDuration --network mainnet --campaign 0x0000000000000000000000000000000000151255 --token 0x0000000000000000000000000000000000107d76 --duration 300",
-    "extendCampaign": "npx hardhat extendCampaign --network mainnet --campaign 0x0000000000000000000000000000000000143719 --token 0x0000000000000000000000000000000000107d76 --reward 12374961000000 --duration 1263425"
+    "campaignInfo": "npx hardhat campaignInfo --network mainnet --campaign 0x00000000000000000000000000000000001e7033",
+    "setDuration": "npx hardhat setDuration --network mainnet --campaign 0x00000000000000000000000000000000001e7033 --token 0x0000000000000000000000000000000000107d76 --duration 300",
+    "extendCampaign": "npx hardhat extendCampaign --network mainnet --campaign 0x00000000000000000000000000000000001e7033 --token 0x0000000000000000000000000000000000107d76 --reward 12374961000000 --duration 1263425"
   },
   "repository": "https://github.com/LimeChain/HeliSwap-yield-farming",
   "author": "Martin Dobrev",

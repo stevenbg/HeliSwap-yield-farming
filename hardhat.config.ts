@@ -23,7 +23,7 @@ task('enableReward', 'Enable rewards to YF contract')
   .addParam('campaign', 'Campaign address')
   .addParam('reward', 'Reward address')
   .addParam('duration', 'Duration in seconds')
-  .addParam('hts', "Whether the reward is HTS")
+  .addParam('hts', 'Whether the reward is HTS')
   .setAction(async taskArgs => {
     const { campaign, reward, duration, hts } = taskArgs;
     const enableReward = require('./scripts/03-enable-rewards');
@@ -63,24 +63,22 @@ task('approveToken', 'Approves an HTS token for spending by an account')
   });
 
 task('setupHbarCampaign', 'Deploys HBAR campaign')
-  .addParam('factory', 'Factory contract address')
-  .addParam('token', 'The staking token to user for the campaign')
+  .addParam('campaign', 'Campaign address')
   .addParam('hbaramount', 'Amount of HBARs to distribute as rewards')
   .addParam('duration', 'Duration of the campaign')
   .setAction(async taskArgs => {
     const setupHbarCampaign = require('./scripts/setup-hbar-campaign');
-    await setupHbarCampaign(taskArgs.factory, taskArgs.token, taskArgs.hbaramount, taskArgs.duration);
+    await setupHbarCampaign(taskArgs.campaign, taskArgs.hbaramount, taskArgs.duration);
   });
 
 task('setupHTSCampaign', 'Deploys HTS campaign')
-  .addParam('factory', 'Factory contract address')
-  .addParam('token', 'The staking token to user for the campaign')
+  .addParam('campaign', 'Campaign address')
   .addParam('reward', 'The staking reward')
   .addParam('amount', 'Amount of HBARs to distribute as rewards')
   .addParam('duration', 'Duration of the campaign')
   .setAction(async taskArgs => {
     const setupHTSCampaign = require('./scripts/setup-hts-campaign');
-    await setupHTSCampaign(taskArgs.factory, taskArgs.token, taskArgs.reward, taskArgs.amount, taskArgs.duration);
+    await setupHTSCampaign(taskArgs.campaign, taskArgs.reward, taskArgs.amount, taskArgs.duration);
   });
 
 task('setupMultiRewardsCampaign', 'Deploys Multi Rewards campaign')
@@ -118,14 +116,14 @@ task('setDuration', 'Adjust the duration of a particular campaign')
   });
 
 task('extendCampaign')
-    .addParam('campaign')
-    .addParam('token')
-    .addParam('duration')
-    .addParam('reward')
-    .setAction(async taskArgs => {
-        const extendCampaign = require('./scripts/06-extend-campaign');
-        await extendCampaign(taskArgs.campaign, taskArgs.token, taskArgs.duration, taskArgs.reward)
-    })
+  .addParam('campaign')
+  .addParam('token')
+  .addParam('duration')
+  .addParam('reward')
+  .setAction(async taskArgs => {
+    const extendCampaign = require('./scripts/06-extend-campaign');
+    await extendCampaign(taskArgs.campaign, taskArgs.token, taskArgs.duration, taskArgs.reward);
+  });
 
 module.exports = {
   solidity: {
@@ -169,7 +167,7 @@ module.exports = {
         '0x45a5a7108a18dd5013cf2d5857a28144beadc9c70b3bdbd914e38df4e804b8d8',
         '0x6e9d61a325be3f6675cf8b7676c70e4a004d2308e3e182370a41f5653d52c6bd',
       ],
-    }
+    },
   },
   defaultNetwork: 'local',
   hedera: {
