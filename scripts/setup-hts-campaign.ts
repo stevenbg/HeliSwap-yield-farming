@@ -20,12 +20,6 @@ async function setupHTSCampaign(campaign: string, reward: string, amount: string
   const campaignId = addressToId(campaign);
   const rewardId = addressToId(reward);
 
-  //   console.log('deployerId', deployerId);
-  //   console.log('campaignId', campaignId);
-  //   console.log('rewardId', rewardId);
-  //   console.log('amount', amount);
-  //   console.log('duration', duration);
-
   //   2. Approve Reward
   await approveToken(deployerId, deployerPk, campaignId, rewardId, amount);
   console.log(`Approved Campaign contract ${campaign} for ${amount} of Reward`);
