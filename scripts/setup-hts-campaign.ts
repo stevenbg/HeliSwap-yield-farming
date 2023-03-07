@@ -25,8 +25,8 @@ async function setupHTSCampaign(campaign: string, reward: string, amount: string
   console.log(`Approved Campaign contract ${campaign} for ${amount} of Reward`);
 
   // 4. Set Duration
-  await enableRewards(campaign, reward, duration, true);
-  //   await setDuration(campaign, reward, duration);
+  //   await enableRewards(campaign, reward, duration, true);
+  await setDuration(campaign, reward, duration);
 
   // 5. Send Rewards
   await sendRewards(campaign, reward, amount);
