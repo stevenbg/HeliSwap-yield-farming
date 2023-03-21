@@ -6,7 +6,7 @@ async function deployCampaignFromFactory(factory: string, owner: string, token: 
 
   console.log('⚙️ Deploying MultiRewards contract ...');
 
-  const deployTx = await Factory.deploy(owner, token);
+  const deployTx = await Factory.deploy(owner, token, { gasLimit: 3_000_000 });
   await deployTx.wait();
 
   const numberOfCampaignsStr = await Factory.getCampaignsLength({ gasLimit: 50_000 });
