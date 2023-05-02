@@ -8,7 +8,7 @@ const setDuration = require('./set-rewards-duration');
 
 // Canonical WHBAR Address on Testnet
 // Reference https://github.com/LimeChain/whbar
-const WHBAR_ADDRESS = '0x00000000000000000000000000000000000f7e89';
+const WHBAR_ADDRESS = '0x0000000000000000000000000000000000001c3D';
 
 async function setupHbarCampaign(campaign: string, hbarAmount: string, duration: string) {
   // 2. Wrap HBARs
@@ -27,8 +27,8 @@ async function setupHbarCampaign(campaign: string, hbarAmount: string, duration:
   console.log(`Approved Campaign contract ${campaign} for ${hbarAmount} of WHBARs`);
 
   // 4. Enable WHBAR Rewards
-  //   await enableRewards(campaign, WHBAR_ADDRESS, duration);
-  await setDuration(campaign, WHBAR_ADDRESS, duration);
+  await enableRewards(campaign, WHBAR_ADDRESS, duration);
+  //   await setDuration(campaign, WHeBAR_ADDRESS, duration);
 
   // 5. Send Rewards
   await sendRewards(campaign, WHBAR_ADDRESS, hbarAmountWei);
