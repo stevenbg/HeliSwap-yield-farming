@@ -92,15 +92,15 @@ task('setupMultiRewardsCampaign', 'Deploys Multi Rewards campaign')
 
 task('campaignInfo', 'Interact with multirewards contract')
   .addParam('campaign', 'Contract address')
-  .addParam('walletAddress', 'Wallet address')
+  .addParam('wallet', 'Wallet address')
   .addParam('index', 'Reward index')
   .addParam('decimals', 'Reward token decimals')
   .setAction(async taskArgs => {
-    const { campaign, walletAddress, index, decimals } = taskArgs;
+    const { campaign, wallet, index, decimals } = taskArgs;
 
     const campaignInfo = require('./scripts/05-campaign-info');
 
-    await campaignInfo(campaign, walletAddress, index, decimals);
+    await campaignInfo(campaign, wallet, index, decimals);
   });
 
 task('setDuration', 'Adjust the duration of a particular campaign')

@@ -5,15 +5,15 @@
   "main": "index.js",
   "scripts": {
     "deployFactory": "npx hardhat deployFactory --network testnet",
-    "deployCampaign": "npx hardhat deployCampaign --network testnet --token 0x04FB21cf2e0D65C10d4d8C029fbEFa60E69EFEa4 --factory 0x000000000000000000000000000000000044fd18 --owner 0x61c90019e9fb0d95cbd39cb68e0b4f217526e2da",
+    "deployCampaign": "npx hardhat deployCampaign --network testnet --token 0x1493a20671e29C51FE13F6579Bce5e4194cD162c --factory 0x000000000000000000000000000000000046a454 --owner 0x61c90019e9fb0d95cbd39cb68e0b4f217526e2da",
     "enableReward": "npx hardhat enableReward --network testnet --campaign 0x0000000000000000000000000000000000143549 --reward 0x00000000000000000000000000000000000f7e89 --duration 86400 --hts false",
     "sendReward": "npx hardhat sendReward --network testnet --campaign 0x0000000000000000000000000000000000143549 --reward 0x00000000000000000000000000000000000f7e89 --amount 100000000",
     "associateToken": "npx hardhat associateToken --network testnet --accountid 0.0.1323559 --pk --tokenid 0.0.127877",
     "approveToken": "npx hardhat approveToken --network testnet --account 0.0.47849515 --pk <PK> --spender 0.0.534359 --token 0.0.34741685 --amount 10000000000000000000000000000000000",
-    "setupHbarCampaign": "npx hardhat setupHbarCampaign --network testnet --campaign 0x000000000000000000000000000000000044fD1b --hbaramount 1000 --duration 31536000",
+    "setupHbarCampaign": "npx hardhat setupHbarCampaign --network testnet --campaign 0x000000000000000000000000000000000046A495 --hbaramount 500 --duration 31536000",
     "setupHTSCampaign": "npx hardhat setupHTSCampaign --network testnet --campaign 0x00000000000000000000000000000000003dbf2A --reward 0x0000000000000000000000000000000000002023 --amount 1400000000000 --duration 1740990",
     "setupMultiRewardsCampaign": "npx hardhat setupMultiRewardsCampaign --network testnet --factory 0x0000000000000000000000000000000002dfa29c --token 0x0a06676Eb5144ad5451bE2Dec256dfeb07f20eb4 --duration 86400",
-    "campaignInfo": "npx hardhat campaignInfo --network testnet --campaign 0x000000000000000000000000000000000016a987",
+    "campaignInfo": "npx hardhat campaignInfo --network testnet --campaign 0x0000000000000000000000000000000000457C4f --wallet 0x0000000000000000000000000000000000001b73 --index 0 --decimals 8",
     "setDuration": "npx hardhat setDuration --network testnet --campaign 0x000000000000000000000000000000000016a987 --token 0x0000000000000000000000000000000000107d76 --duration 300",
     "extendCampaign": "npx hardhat extendCampaign --network testnet --campaign 0x000000000000000000000000000000000016a987 --token 0x0000000000000000000000000000000000107d76 --reward 12374961000000 --duration 1263425"
   },
