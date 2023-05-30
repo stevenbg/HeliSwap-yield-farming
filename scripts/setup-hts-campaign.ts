@@ -1,7 +1,6 @@
 // @ts-nocheck
 import hardhat from 'hardhat';
 
-const deployCampaignFromFactory = require('./02-deploy-campaign');
 const enableRewards = require('./03-enable-rewards');
 const sendRewards = require('./04-send-reward');
 const approveToken = require('./utils/approveToken');

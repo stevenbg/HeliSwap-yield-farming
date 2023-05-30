@@ -1,14 +1,11 @@
 // @ts-nocheck
 import hardhat from 'hardhat';
 
-const deployCampaignFromFactory = require('./02-deploy-campaign');
 const enableRewards = require('./03-enable-rewards');
 const sendRewards = require('./04-send-reward');
 const setDuration = require('./set-rewards-duration');
 
-// Canonical WHBAR Address on Testnet
-// Reference https://github.com/LimeChain/whbar
-const WHBAR_ADDRESS = '0x00000000000000000000000000000000000f7e89';
+const WHBAR_ADDRESS = '0x00000000000000000000000000000000002cc823';
 
 async function setupHbarCampaign(campaign: string, hbarAmount: string, duration: string) {
   // 2. Wrap HBARs
