@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "deployFactory": "npx hardhat deployFactory --network mainnet",
-    "deployCampaign": "npx hardhat deployCampaign --network mainnet --token 0x9D87DfFB6b4c9D01F9545b49642ff6b0bBBFc3A4 --factory 0x0000000000000000000000000000000000134238 --owner 0x0000000000000000000000000000000000143227",
+    "deployCampaign": "npx hardhat deployCampaign --network mainnet --token 0x9D87DfFB6b4c9D01F9545b49642ff6b0bBBFc3A4 --factory 0x00000000000000000000000000000000002Cc9D1 --owner 0x0000000000000000000000000000000000143227",
     "enableReward": "npx hardhat enableReward --network mainnet --campaign 0x0000000000000000000000000000000000143549 --reward 0x00000000000000000000000000000000000f7e89 --duration 86400 --hts false",
     "sendReward": "npx hardhat sendReward --network mainnet --campaign 0x0000000000000000000000000000000000143549 --reward 0x00000000000000000000000000000000000f7e89 --amount 100000000",
     "associateToken": "npx hardhat associateToken --network mainnet --accountid 0.0.1323559 --pk --tokenid 0.0.127877",

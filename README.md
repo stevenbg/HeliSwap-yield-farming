@@ -6,7 +6,7 @@ If you use another version, please use [n](https://github.com/tj/n) to manage.
 
 ## ✍️ Mainnet Deployment Address
 
-`Factory: 0x0000000000000000000000000000000000134238`
+`Factory: 0x00000000000000000000000000000000002Cc9D1`
 
 [See on Hashscan](https://hashscan.io/mainnet/contract/0.0.1262136)
 
