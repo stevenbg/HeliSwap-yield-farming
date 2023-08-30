@@ -11,7 +11,7 @@
     "associateToken": "npx hardhat associateToken --network mainnet --accountid 0.0.1323559 --pk --tokenid 0.0.127877",
     "approveToken": "npx hardhat approveToken --network mainnet --account 0.0.47849515 --pk <PK> --spender 0.0.534359 --token 0.0.34741685 --amount 10000000000000000000000000000000000",
     "setupHbarCampaign": "npx hardhat setupHbarCampaign --network mainnet --campaign 0x000000000000000000000000000000000016a987 --hbaramount 120000 --duration 535127",
-    "setupHTSCampaign": "npx hardhat setupHTSCampaign --network mainnet --campaign 0x000000000000000000000000000000000016a987 --reward 0x0000000000000000000000000000000000107d76 --amount 1400000000000 --duration 1740990",
+    "setupHTSCampaign": "npx hardhat setupHTSCampaign --network mainnet --campaign 0x0000000000000000000000000000000000214949 --reward 0x00000000000000000000000000000000001d90C9 --amount 4000000000000 --duration 690527",
     "setupMultiRewardsCampaign": "npx hardhat setupMultiRewardsCampaign --network testnet --factory 0x0000000000000000000000000000000002dfa29c --token 0x0a06676Eb5144ad5451bE2Dec256dfeb07f20eb4 --duration 86400",
     "campaignInfo": "npx hardhat campaignInfo --network mainnet --campaign 0x000000000000000000000000000000000016a987",
     "setDuration": "npx hardhat setDuration --network mainnet --campaign 0x000000000000000000000000000000000016a987 --token 0x0000000000000000000000000000000000107d76 --duration 300",
