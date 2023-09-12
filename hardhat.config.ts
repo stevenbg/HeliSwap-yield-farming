@@ -118,20 +118,20 @@ task('setDuration', 'Adjust the duration of a particular campaign')
   });
 
 task('extendCampaign')
-    .addParam('campaign')
-    .addParam('token')
-    .addParam('duration')
-    .addParam('reward')
-    .setAction(async taskArgs => {
-        const extendCampaign = require('./scripts/06-extend-campaign');
-        await extendCampaign(taskArgs.campaign, taskArgs.token, taskArgs.duration, taskArgs.reward)
-    })
+  .addParam('campaign')
+  .addParam('token')
+  .addParam('duration')
+  .addParam('reward')
+  .setAction(async taskArgs => {
+    const extendCampaign = require('./scripts/06-extend-campaign');
+    await extendCampaign(taskArgs.campaign, taskArgs.token, taskArgs.duration, taskArgs.reward)
+  })
 
 module.exports = {
   solidity: {
     compilers: [
       {
-        version: '0.5.17',
+        version: '0.8.0',
         settings: {
           optimizer: {
             enabled: true,
@@ -141,15 +141,6 @@ module.exports = {
       },
       {
         version: '0.4.18',
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200,
-          },
-        },
-      },
-      {
-        version: '0.8.10',
         settings: {
           optimizer: {
             enabled: true,
