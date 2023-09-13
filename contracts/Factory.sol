@@ -2,8 +2,9 @@
 pragma solidity 0.8.0;
 
 import './MultiRewards.sol';
-import './libraries/PoolAddress.sol';
 import './libraries/TransferHelper.sol';
+
+import './interfaces/IPoolsFactory.sol';
 import './interfaces/ICampaignFactory.sol';
 
 /// @notice Factory contract for deploying Yield Farming campaigns
@@ -49,7 +50,7 @@ contract Factory is ICampaignFactory, Owned {
     /// @param toWhitelist Flag determining allowing/disallowing
     function setRewardTokens(address[] calldata whitelistedTokens, bool toWhitelist) external override onlyOwner {
         uint256 numberOfTokens = whitelistedTokens.length;
-        for (uint256 i = 0; i < numberOfTokens; i++) {
+        for (uint256 i = 0; i < numberOfTokens; ) {
             rewardTokens[whitelistedTokens[i]] = toWhitelist;
 
             unchecked {
@@ -64,8 +65,9 @@ contract Factory is ICampaignFactory, Owned {
     /// @param _tokenA The first token of the pool the campaign is created for
     /// @param _tokenB The second token of the pool the campaign is created for
     function deploy(address _tokenA, address _tokenB) external override onlyOwner {
-        address stakingToken = PoolAddress.pairFor(poolsFactory, _tokenA, _tokenB);
-        require(farmCampaigns[stakingToken] == address(0x0), 'Campaign already exists for the given pool');
+        address stakingToken = IPoolsFactory(poolsFactory).getPair(_tokenA, _tokenB);
+        require(stakingToken != address(0), 'Such a pool does not exists');
+        require(farmCampaigns[stakingToken] == address(0), 'Campaign already exists for the given pool');
 
         MultiRewards newCampaign = new MultiRewards(stakingToken, _tokenA, _tokenB, WHBAR, owner);
         farmCampaigns[stakingToken] = address(newCampaign);
