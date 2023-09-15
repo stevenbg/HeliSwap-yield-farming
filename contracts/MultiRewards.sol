@@ -88,10 +88,16 @@ contract MultiRewards is IMultiRewards, Owned, ReentrancyGuard, Pausable {
 
     /// @notice Pre-configure a campaign
     /// @param _duration The duration of the campaign
-    // Todo: If that is secure enough - front-running
+    /// @dev: That function can be front-runned. So when one calls after that notifyReward
+    /// @dev: we advice to obtain the duration before that to be sure it is
+    /// @dev: the expected one or to adjust the desired rewards amount
     function enableReward(uint256 _duration) external override {
         require(block.timestamp > periodFinish, 'Reward period still active');
-        require(_duration > 0, 'Reward duration must be non-zero');
+        require(_duration > 0 && duration < 13, 'Reward duration out of range');
+
+        // Transfer fee
+        (uint256 fee, address feeAsset) = ICampaignFactory(factory).getFeeDetails();
+        TransferHelper.safeTransferFrom(feeAsset, msg.sender, factory, fee);
 
         rewardsDuration = _duration * 30 days;
         emit RewardEnabled(rewardsDuration);
@@ -100,7 +106,10 @@ contract MultiRewards is IMultiRewards, Owned, ReentrancyGuard, Pausable {
     /// @notice Run/extend a campaign
     /// @param _token The token the amount is to be distributed in
     /// @param _reward The amount that is to be distributed by the campaign
+    // Todo: What happens with the rewards being accumulated for 2 campaigns
+    // Todo: Consider what would happen if one calls notifyRewardAmount twice one after the other
     function notifyRewardAmount(address _token, uint256 _reward) external override updateReward(address(0)) {
+        require(rewardsDuration > 0, 'Campaign not configured yet');
         require(
             whitelistedRewardTokens[_token] || ICampaignFactory(factory).rewardTokens(_token),
             'Not whitelisted reward token'
@@ -113,24 +122,22 @@ contract MultiRewards is IMultiRewards, Owned, ReentrancyGuard, Pausable {
             optimisticAssociation(_token);
         }
 
-        // Transfer fee
-        (uint256 fee, address feeAsset) = ICampaignFactory(factory).getFeeDetails();
-        TransferHelper.safeTransferFrom(feeAsset, msg.sender, factory, fee);
-
         // handle the transfer of reward tokens via `transferFrom` to reduce the number
         // of transactions required and ensure correctness of the reward amount
         TransferHelper.safeTransferFrom(_token, msg.sender, address(this), _reward);
 
         if (block.timestamp >= periodFinish) {
             rewardData[_token].rewardRate = _reward.div(rewardsDuration);
+            periodFinish = block.timestamp.add(rewardsDuration);
         } else {
             uint256 remaining = periodFinish.sub(block.timestamp);
             uint256 leftover = remaining.mul(rewardData[_token].rewardRate);
-            rewardData[_token].rewardRate = _reward.add(leftover).div(rewardsDuration);
+            rewardData[_token].rewardRate = _reward.add(leftover).div(remaining);
         }
 
+        require(rewardData[_token].rewardRate > 0, 'Too little rewards for the duration');
+
         rewardData[_token].lastUpdateTime = block.timestamp;
-        periodFinish = block.timestamp.add(rewardsDuration);
 
         emit RewardAdded(_token, _reward, rewardsDuration);
     }
