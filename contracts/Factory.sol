@@ -64,7 +64,7 @@ contract Factory is ICampaignFactory, Owned {
     /// @notice Deploys new instance of the {MultiRewards} contract effectively creating new campaign
     /// @param _tokenA The first token of the pool the campaign is created for
     /// @param _tokenB The second token of the pool the campaign is created for
-    function deploy(address _tokenA, address _tokenB) external override onlyOwner {
+    function deploy(address _tokenA, address _tokenB) external override {
         address stakingToken = IPoolsFactory(poolsFactory).getPair(_tokenA, _tokenB);
         require(stakingToken != address(0), 'Such a pool does not exists');
         require(farmCampaigns[stakingToken] == address(0), 'Campaign already exists for the given pool');
