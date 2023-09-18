@@ -88,12 +88,12 @@ contract MultiRewards is IMultiRewards, Owned, ReentrancyGuard, Pausable {
 
     /// @notice Pre-configure a campaign
     /// @param _duration The duration of the campaign
-    /// @dev: That function can be front-runned. So when one calls after that notifyReward
-    /// @dev: we advice to obtain the duration before that to be sure it is
-    /// @dev: the expected one or to adjust the desired rewards amount
+    /// dev: That function can be front-runned. So when one calls after that notifyReward
+    /// dev: we advice to obtain the duration before that to be sure it is
+    /// dev: the expected one or to adjust the desired rewards amount
     function enableReward(uint256 _duration) external override {
         require(block.timestamp > periodFinish, 'Reward period still active');
-        require(_duration > 0 && duration < 13, 'Reward duration out of range');
+        require(_duration > 0 && _duration < 13, 'Reward duration out of range');
 
         // Transfer fee
         (uint256 fee, address feeAsset) = ICampaignFactory(factory).getFeeDetails();
