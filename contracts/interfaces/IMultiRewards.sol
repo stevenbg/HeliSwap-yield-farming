@@ -17,7 +17,7 @@ interface IMultiRewards {
 
     function rewardTokens(uint256) external view returns (address);
 
-    function rewardData(address) external view returns (uint256, uint256, uint256);
+    function rewardData(address) external view returns (uint256, uint256, uint256, uint256);
 
     function hasRewardTokenAdded(address) external view returns (bool);
 

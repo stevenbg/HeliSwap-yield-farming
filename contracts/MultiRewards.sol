@@ -26,6 +26,7 @@ contract MultiRewards is IMultiRewards, Owned, ReentrancyGuard, Pausable {
 
     struct Reward {
         uint256 rewardRate;
+        uint256 periodFinish;
         uint256 lastUpdateTime;
         uint256 rewardPerTokenStored;
     }
@@ -127,10 +128,14 @@ contract MultiRewards is IMultiRewards, Owned, ReentrancyGuard, Pausable {
         TransferHelper.safeTransferFrom(_token, msg.sender, address(this), _reward);
 
         if (block.timestamp >= periodFinish) {
-            rewardData[_token].rewardRate = _reward.div(rewardsDuration);
             periodFinish = block.timestamp.add(rewardsDuration);
+        }
+
+        uint256 remaining = periodFinish.sub(block.timestamp);
+        if (block.timestamp >= rewardData[_token].periodFinish) {
+            rewardData[_token].rewardRate = _reward.div(remaining);
+            rewardData[_token].periodFinish = periodFinish;
         } else {
-            uint256 remaining = periodFinish.sub(block.timestamp);
             uint256 leftover = remaining.mul(rewardData[_token].rewardRate);
             rewardData[_token].rewardRate = _reward.add(leftover).div(remaining);
         }
