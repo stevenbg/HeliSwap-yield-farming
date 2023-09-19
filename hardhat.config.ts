@@ -29,13 +29,11 @@ task('deployCampaign', 'Deploys an YF contract from factory')
 
 task('enableReward', 'Enable rewards to YF contract')
   .addParam('campaign', 'Campaign address')
-  .addParam('reward', 'Reward address')
   .addParam('duration', 'Duration in seconds')
-  .addParam('hts', 'Whether the reward is HTS')
   .setAction(async taskArgs => {
-    const { campaign, reward, duration, hts } = taskArgs;
+    const { campaign, duration } = taskArgs;
     const enableReward = require('./scripts/03-enable-rewards');
-    await enableReward(campaign, reward, duration, hts); // If adding non HTS token as as reward, set this to false
+    await enableReward(campaign, duration); // If adding non HTS token as as reward, set this to false
   });
 
 task('sendReward', 'Notify contract for YF rewards')
