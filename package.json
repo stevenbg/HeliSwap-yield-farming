@@ -8,7 +8,7 @@
     "test": "npx hardhat test",
     "coverage": "npx hardhat coverage",
     "deployFactory": "npx hardhat deployFactory --network testnet",
-    "deployCampaign": "npx hardhat deployCampaign --network mainnet --token 0xe001dDE8f149a96B658ED8C6875a74C445927cdC",
+    "deployCampaign": "npx hardhat deployCampaign --network testnet --factory 0x00000000000000000000000000000000001edcfd --token0 0x000000000000000000000000000000000006a5c5 --token1 0x000000000000000000000000000000000006a5e2",
     "enableReward": "npx hardhat enableReward --network mainnet --campaign 0x0000000000000000000000000000000000143549 --reward 0x00000000000000000000000000000000000f7e89 --duration 86400 --hts false",
     "sendReward": "npx hardhat sendReward --network mainnet --campaign 0x0000000000000000000000000000000000143549 --reward 0x00000000000000000000000000000000000f7e89 --amount 100000000",
     "associateToken": "npx hardhat associateToken --network mainnet --accountid 0.0.1323559 --pk --tokenid 0.0.127877",

@@ -1,17 +1,16 @@
-import * as dotenv from "dotenv";
+import * as dotenv from 'dotenv';
 
-import "@nomiclabs/hardhat-etherscan";
-import "@nomiclabs/hardhat-waffle";
-import "@typechain/hardhat";
-import "hardhat-gas-reporter";
-import "solidity-coverage";
+import '@nomiclabs/hardhat-etherscan';
+import '@nomiclabs/hardhat-waffle';
+import '@typechain/hardhat';
+import 'hardhat-gas-reporter';
+import 'solidity-coverage';
 
-import * as config from "./config";
-
+import * as config from './config';
 
 dotenv.config();
 
-// require('@hashgraph/hardhat-hethers'); // UNCOMMENT WHEN EXECUTING SCRIPTS; COMMENT WHEN RUNNING TESTS
+require('@hashgraph/hardhat-hethers'); // UNCOMMENT WHEN EXECUTING SCRIPTS; COMMENT WHEN RUNNING TESTS
 
 task('deployFactory', 'Deploys an YF factory contract').setAction(async () => {
   const factoryDeployment = require('./scripts/01-deploy-factory');
@@ -20,19 +19,19 @@ task('deployFactory', 'Deploys an YF factory contract').setAction(async () => {
 
 task('deployCampaign', 'Deploys an YF contract from factory')
   .addParam('factory', 'Factory contract address')
-  .addParam('owner', 'Campaign owner')
-  .addParam('token', 'Staking token address')
+  .addParam('token0', 'Token A')
+  .addParam('token1', 'Token B')
   .setAction(async taskArgs => {
-    const { factory, owner, token } = taskArgs;
+    const { factory, token0, token1 } = taskArgs;
     const deployCampaign = require('./scripts/02-deploy-campaign');
-    await deployCampaign(factory, owner, token);
+    await deployCampaign(factory, token0, token1);
   });
 
 task('enableReward', 'Enable rewards to YF contract')
   .addParam('campaign', 'Campaign address')
   .addParam('reward', 'Reward address')
   .addParam('duration', 'Duration in seconds')
-  .addParam('hts', "Whether the reward is HTS")
+  .addParam('hts', 'Whether the reward is HTS')
   .setAction(async taskArgs => {
     const { campaign, reward, duration, hts } = taskArgs;
     const enableReward = require('./scripts/03-enable-rewards');
@@ -133,60 +132,49 @@ task('extendCampaign')
   .addParam('reward')
   .setAction(async taskArgs => {
     const extendCampaign = require('./scripts/06-extend-campaign');
-    await extendCampaign(taskArgs.campaign, taskArgs.token, taskArgs.duration, taskArgs.reward)
-  })
+    await extendCampaign(taskArgs.campaign, taskArgs.token, taskArgs.duration, taskArgs.reward);
+  });
 
 const accounts = [
   {
-    privateKey:
-      "0xe80902f1423234ab6de5232a497a2dad6825185949438bdf02ef36cd3f38d62c",
-    balance: "211371231719819352917048000",
-
+    privateKey: '0xe80902f1423234ab6de5232a497a2dad6825185949438bdf02ef36cd3f38d62c',
+    balance: '211371231719819352917048000',
   },
   {
-    privateKey:
-      "0x8dc23d20e4cc1c1bce80b3610d2b9c3d2dcc917fe838d6161c7b7107ea8049d2",
-    balance: "211371231719819352917048000",
+    privateKey: '0x8dc23d20e4cc1c1bce80b3610d2b9c3d2dcc917fe838d6161c7b7107ea8049d2',
+    balance: '211371231719819352917048000',
   },
   {
-    privateKey:
-      "0xf467b3f495971ec1804cd753984e2ab03affc8574c35bd302d611f93420c1861",
-    balance: "211371231719819352917048000",
+    privateKey: '0xf467b3f495971ec1804cd753984e2ab03affc8574c35bd302d611f93420c1861',
+    balance: '211371231719819352917048000',
   },
   {
-    privateKey:
-      "0x195c2fce7255bddbea14def3ca04fd5bf2b53e749cd2d4ac33a85d6872e798f6",
-    balance: "211371231719819352917048000",
+    privateKey: '0x195c2fce7255bddbea14def3ca04fd5bf2b53e749cd2d4ac33a85d6872e798f6',
+    balance: '211371231719819352917048000',
   },
   {
-    privateKey:
-      "0xa9039111697f2c0c51d0c2f35cb1fc1fa9f0456e1a0b58c297d4940eda35b135",
-    balance: "211371231719819352917048000",
+    privateKey: '0xa9039111697f2c0c51d0c2f35cb1fc1fa9f0456e1a0b58c297d4940eda35b135',
+    balance: '211371231719819352917048000',
   },
   {
-    privateKey:
-      "0xd32ba1893d2c189fb6ce63ef03c63e2aa7cf2893c60c39851d2c576fd7bb8b65",
-    balance: "211371231719819352917048000",
+    privateKey: '0xd32ba1893d2c189fb6ce63ef03c63e2aa7cf2893c60c39851d2c576fd7bb8b65',
+    balance: '211371231719819352917048000',
   },
   {
-    privateKey:
-      "0xf9def8e25a2538e0a090bce36e9cd7815d04347171383f9dcb6362078c4437df",
-    balance: "211371231719819352917048000",
+    privateKey: '0xf9def8e25a2538e0a090bce36e9cd7815d04347171383f9dcb6362078c4437df',
+    balance: '211371231719819352917048000',
   },
   {
-    privateKey:
-      "0xe57de1dc1573318d0a7e81367138c09b04a6a6bc6f46858c3a09d1f7a25ee72d",
-    balance: "211371231719819352917048000",
+    privateKey: '0xe57de1dc1573318d0a7e81367138c09b04a6a6bc6f46858c3a09d1f7a25ee72d',
+    balance: '211371231719819352917048000',
   },
   {
-    privateKey:
-      "0x81274be2a9a23d2bcb6786b786917b3641d8dff69b541a7f1d20151a145a4114",
-    balance: "211371231719819352917048000",
+    privateKey: '0x81274be2a9a23d2bcb6786b786917b3641d8dff69b541a7f1d20151a145a4114',
+    balance: '211371231719819352917048000',
   },
   {
-    privateKey:
-      "0xf1ddce51d38205805c1574e46dc3982c5cdad8e78641200280be1df7487bdbac",
-    balance: "211371231719819352917048000",
+    privateKey: '0xf1ddce51d38205805c1574e46dc3982c5cdad8e78641200280be1df7487bdbac',
+    balance: '211371231719819352917048000',
   },
 ];
 
@@ -202,8 +190,8 @@ module.exports = {
           },
           // required for smocks plugin
           outputSelection: {
-            "*": {
-              "*": ["storageLayout"],
+            '*': {
+              '*': ['storageLayout'],
             },
           },
         },
@@ -220,18 +208,18 @@ module.exports = {
     ],
   },
   paths: {
-    sources: "./contracts",
-    cache: "./cache",
-    artifacts: "./artifacts",
+    sources: './contracts',
+    cache: './cache',
+    artifacts: './artifacts',
   },
   networks: {
     localhost: {
-      url: "http://localhost:8545",
+      url: 'http://localhost:8545',
     },
     hardhat: {
       allowUnlimitedContractSize: true,
       forking: {
-        url: "" + process.env.MAINNET_KEY,
+        url: '' + process.env.MAINNET_KEY,
         blockNumber: 15680777,
       },
       // mining: {
@@ -246,12 +234,12 @@ module.exports = {
     gasLimit: 2_000_000,
   },
   gasReporter: {
-    enabled: process.env.REPORT_GAS === "true",
-    currency: "USD",
+    enabled: process.env.REPORT_GAS === 'true',
+    currency: 'USD',
   },
   etherscan: {
     // Your API key for Etherscan
     // Obtain one at https://etherscan.io/
-    apiKey: "",
+    apiKey: '',
   },
 };
