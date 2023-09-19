@@ -92,13 +92,9 @@ contract MultiRewards is IMultiRewards, Owned, ReentrancyGuard, Pausable {
     /// dev: That function can be front-runned. So when one calls after that notifyReward
     /// dev: we advice to obtain the duration before that to be sure it is
     /// dev: the expected one or to adjust the desired rewards amount
-    function enableReward(uint256 _duration) external override {
+    function enableReward(uint256 _duration) external override nonReentrant {
         require(block.timestamp > periodFinish, 'Reward period still active');
         require(_duration > 0 && _duration < 13, 'Reward duration out of range');
-
-        // Transfer fee
-        (uint256 fee, address feeAsset) = ICampaignFactory(factory).getFeeDetails();
-        TransferHelper.safeTransferFrom(feeAsset, msg.sender, factory, fee);
 
         rewardsDuration = _duration * 30 days;
         emit RewardEnabled(rewardsDuration);
@@ -107,10 +103,14 @@ contract MultiRewards is IMultiRewards, Owned, ReentrancyGuard, Pausable {
     /// @notice Run/extend a campaign
     /// @param _token The token the amount is to be distributed in
     /// @param _reward The amount that is to be distributed by the campaign
-    // Todo: What happens with the rewards being accumulated for 2 campaigns
-    // Todo: Consider what would happen if one calls notifyRewardAmount twice one after the other
-    function notifyRewardAmount(address _token, uint256 _reward) external override updateReward(address(0)) {
+    /// @param _duration Needed as one can front-run the enableReward and change the duration
+    function notifyRewardAmount(
+        address _token,
+        uint256 _reward,
+        uint256 _duration
+    ) external override nonReentrant updateReward(address(0)) {
         require(rewardsDuration > 0, 'Campaign not configured yet');
+        require(_duration * 30 days == rewardsDuration, 'APR estimated could be wrong');
         require(
             whitelistedRewardTokens[_token] || ICampaignFactory(factory).rewardTokens(_token),
             'Not whitelisted reward token'
@@ -123,9 +123,14 @@ contract MultiRewards is IMultiRewards, Owned, ReentrancyGuard, Pausable {
             optimisticAssociation(_token);
         }
 
-        // handle the transfer of reward tokens via `transferFrom` to reduce the number
+        // Handle the transfer of reward tokens via `transferFrom` to reduce the number
         // of transactions required and ensure correctness of the reward amount
         TransferHelper.safeTransferFrom(_token, msg.sender, address(this), _reward);
+
+        // Charge fee
+        uint256 fee = (ICampaignFactory(factory).fee() * _reward) / 1e18;
+        TransferHelper.safeTransfer(_token, factory, fee);
+        _reward -= fee;
 
         if (block.timestamp >= periodFinish) {
             periodFinish = block.timestamp.add(rewardsDuration);

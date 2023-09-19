@@ -14,9 +14,6 @@ contract Factory is ICampaignFactory, Owned {
     // Flat fee that is charged on campaign creation/extension
     uint256 public override fee;
 
-    // The asset the fee is paid in
-    address public override feeAsset;
-
     // Obtain pool and its tokens when creating a farm campaign
     address public override poolsFactory;
 
@@ -29,20 +26,20 @@ contract Factory is ICampaignFactory, Owned {
     // Store pool to farm campaign
     mapping(address => address) public override farmCampaigns;
 
-    constructor(address _whbar, uint256 _fee, address _feeAsset, address _poolsFactory) Owned(msg.sender) {
+    constructor(address _whbar, uint256 _fee, address _poolsFactory) Owned(msg.sender) {
+        require(_fee <= 1e18, 'Fee out of range');
+
         WHBAR = _whbar;
         fee = _fee;
-        feeAsset = _feeAsset;
         poolsFactory = _poolsFactory;
     }
 
     /// @notice Set a flat fee that is to be charged on campaign creation/extension
     /// @param _fee The amount of fee
-    /// @param _feeAsset The asset the fee is to be paid in
-    function setFee(uint256 _fee, address _feeAsset) external override onlyOwner {
+    function setFee(uint256 _fee) external override onlyOwner {
+        require(_fee <= 1e18, 'Fee out of range');
         fee = _fee;
-        feeAsset = _feeAsset;
-        emit SetFee(_fee, _feeAsset);
+        emit SetFee(_fee);
     }
 
     /// @notice Add/Remove tokens that are allowed to be added as a rewards for every single campaign
@@ -78,15 +75,11 @@ contract Factory is ICampaignFactory, Owned {
 
     /// @notice Withdraw fees being collected by creating/extending campaigns
     /// @param receiver The address to receive the fee being accumulated so far
-    function withdrawFee(address receiver) external override onlyOwner {
-        uint256 feeAmount = IERC20(feeAsset).balanceOf(address(this));
-        TransferHelper.safeTransfer(feeAsset, receiver, feeAmount);
-        emit WithdrawFee(feeAmount, receiver);
-    }
-
-    /// @notice Return all the fee related things at once for gas optimization
-    function getFeeDetails() external view override returns (uint256, address) {
-        return (fee, feeAsset);
+    /// @param token The currency the fee to be withdrawn in
+    function withdrawFee(address receiver, address token) external override onlyOwner {
+        uint256 feeAmount = IERC20(token).balanceOf(address(this));
+        TransferHelper.safeTransfer(token, receiver, feeAmount);
+        emit WithdrawFee(token, feeAmount, receiver);
     }
 
     /// @notice Get the number of campaigns to be able to loop through them

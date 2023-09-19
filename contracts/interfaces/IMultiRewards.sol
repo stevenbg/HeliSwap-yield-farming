@@ -33,7 +33,7 @@ interface IMultiRewards {
 
     function enableReward(uint256 _duration) external;
 
-    function notifyRewardAmount(address _token, uint256 _reward) external;
+    function notifyRewardAmount(address _token, uint256 _reward, uint256 _notifyRewardAmount) external;
 
     function stake(uint256 amount) external;
 

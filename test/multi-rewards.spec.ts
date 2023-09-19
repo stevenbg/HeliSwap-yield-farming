@@ -2,22 +2,20 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { smock } from '@defi-wonderland/smock';
 
-describe.only('MultiRewards', function () {
+describe('MultiRewards', function () {
     this.timeout(60_000);
 
     let signers: any;
     let factory: any;
     let whbar: any;
-    let lpToken: any;
-    let staking: any;
     let campaign: any;
-    let feeAsset: any;
     let pool: any;
     let poolsFactory: any;
     let tokenA: any;
     let tokenB: any;
 
-    const FEE = ethers.utils.parseEther('1');
+    const FEE = ethers.utils.parseEther('0.1');
+    const FEE_DIVIDER = ethers.utils.parseEther('1');
 
     beforeEach(async () => {
         signers = await ethers.getSigners();
@@ -59,7 +57,6 @@ describe.only('MultiRewards', function () {
 
         const tokenFactory = await ethers.getContractFactory('MockToken');
         pool = await (await tokenFactory.deploy()).deployed();
-        feeAsset = await (await tokenFactory.deploy()).deployed();
         tokenA = await (await tokenFactory.deploy()).deployed();
         tokenB = await (await tokenFactory.deploy()).deployed();
 
@@ -95,7 +92,7 @@ describe.only('MultiRewards', function () {
 
         const Factory = await ethers.getContractFactory('Factory');
         factory = await (await Factory.deploy(
-            whbar.address, FEE, feeAsset.address, poolsFactory.address
+            whbar.address, FEE, poolsFactory.address
         )).deployed();
 
         await factory.deploy(tokenA.address, tokenB.address);
@@ -115,23 +112,17 @@ describe.only('MultiRewards', function () {
 
     describe('Enable campaign', () => {
         it('Should set campaign duration', async () => {
-            await feeAsset.mint(signers[0].address, FEE);
-            await feeAsset.approve(campaign.address, FEE);
-
             await campaign.enableReward(2);
             expect(await campaign.rewardsDuration()).to.be.equal(2 * 30 * 24 * 60 * 60);
         });
 
         it('Should revert in case the campaign is running', async () => {
-            await feeAsset.mint(signers[0].address, FEE);
-            await feeAsset.approve(campaign.address, FEE);
-
             await campaign.enableReward(2);
 
             await tokenA.mint(signers[0].address, ethers.utils.parseEther('1'));
             await tokenA.approve(campaign.address, ethers.utils.parseEther('1'));
 
-            await campaign.notifyRewardAmount(tokenA.address, ethers.utils.parseEther('1'));
+            await campaign.notifyRewardAmount(tokenA.address, ethers.utils.parseEther('1'), 2);
 
             await expect(campaign.enableReward(2)).to.be.revertedWith('Reward period still active');
         });
@@ -140,26 +131,24 @@ describe.only('MultiRewards', function () {
             await expect(campaign.enableReward(0)).to.be.revertedWith('Reward duration out of range');
             await expect(campaign.enableReward(13)).to.be.revertedWith('Reward duration out of range');
         });
-
-        it('Should revert in case the fee is not paid', async () => {
-            await expect(campaign.enableReward(3)).to.be.revertedWith('TransferFrom: Failed');
-        });
     });
 
     describe('Notify campaign', () => {
         it('Should run a campaign', async () => {
-            await feeAsset.mint(signers[0].address, FEE);
-            await feeAsset.approve(campaign.address, FEE);
             await campaign.enableReward(2);
 
-            await tokenA.mint(signers[0].address, ethers.utils.parseEther('1'));
-            await tokenA.approve(campaign.address, ethers.utils.parseEther('1'));
+            const reward = ethers.utils.parseEther('1');
+            const fee = reward.mul(FEE).div(FEE_DIVIDER);
+            const realRewards = reward.sub(fee);
 
-            await campaign.notifyRewardAmount(tokenA.address, ethers.utils.parseEther('1'));
+            await tokenA.mint(signers[0].address, reward);
+            await tokenA.approve(campaign.address, reward);
+
+            await campaign.notifyRewardAmount(tokenA.address, reward, 2);
 
             const blockStamp = (await ethers.provider.getBlock('latest')).timestamp;
             const data = await campaign.rewardData(tokenA.address);
-            expect(data[0]).to.be.equal(ethers.utils.parseEther('1').div(2 * 30 * 24 * 60 * 60));
+            expect(data[0]).to.be.equal(realRewards.div(2 * 30 * 24 * 60 * 60));
             expect(data[1]).to.be.equal(await campaign.periodFinish());
             expect(data[2]).to.be.equal(blockStamp);
             expect(data[3]).to.be.equal(0);
@@ -167,34 +156,37 @@ describe.only('MultiRewards', function () {
             expect(await campaign.rewardTokens(0)).to.be.equal(tokenA.address);
             expect(await campaign.hasRewardTokenAdded(tokenA.address)).to.be.equal(true);
 
-            expect(await feeAsset.balanceOf(signers[2].address)).to.be.equal(0);
-            expect(await feeAsset.balanceOf(factory.address)).to.be.equal(FEE);
-
             expect(await tokenA.balanceOf(signers[2].address)).to.be.equal(0);
-            expect(await tokenA.balanceOf(campaign.address)).to.be.equal(ethers.utils.parseEther('1'));
+            expect(await tokenA.balanceOf(campaign.address)).to.be.equal(realRewards);
         });
 
         it('Should extend a campaign', async () => {
-            await feeAsset.mint(signers[0].address, FEE.mul(2));
-            await feeAsset.approve(campaign.address, FEE.mul(2));
             await campaign.enableReward(2);
 
-            await tokenA.mint(signers[0].address, ethers.utils.parseEther('1'));
-            await tokenA.approve(campaign.address, ethers.utils.parseEther('1'));
-            await campaign.notifyRewardAmount(tokenA.address, ethers.utils.parseEther('1'));
+            const reward = ethers.utils.parseEther('1');
+            const fee = reward.mul(FEE).div(FEE_DIVIDER);
+            const realRewards = reward.sub(fee);
+
+            await tokenA.mint(signers[0].address, reward);
+            await tokenA.approve(campaign.address, reward);
+            await campaign.notifyRewardAmount(tokenA.address, reward, 2);
 
             await ethers.provider.send('evm_increaseTime', [60 * 24 * 60 * 60]); // skip 2 months
             await ethers.provider.send('evm_mine', []);
 
             await campaign.enableReward(2);
 
+            const reward2 = ethers.utils.parseEther('15');
+            const fee2 = reward2.mul(FEE).div(FEE_DIVIDER);
+            const realRewards2 = reward2.sub(fee2);
+
             await tokenA.mint(signers[0].address, ethers.utils.parseEther('15'));
             await tokenA.approve(campaign.address, ethers.utils.parseEther('15'));
-            await campaign.notifyRewardAmount(tokenA.address, ethers.utils.parseEther('15'));
+            await campaign.notifyRewardAmount(tokenA.address, ethers.utils.parseEther('15'), 2);
 
             const blockStamp = (await ethers.provider.getBlock('latest')).timestamp;
             const data = await campaign.rewardData(tokenA.address);
-            expect(data[0]).to.be.equal(ethers.utils.parseEther('15').div(60 * 24 * 60 * 60));
+            expect(data[0]).to.be.equal(realRewards2.div(60 * 24 * 60 * 60));
             expect(data[1]).to.be.equal(await campaign.periodFinish());
             expect(data[2]).to.be.equal(blockStamp);
             expect(data[3]).to.be.equal(0);
@@ -202,25 +194,27 @@ describe.only('MultiRewards', function () {
             expect(await campaign.rewardTokens(0)).to.be.equal(tokenA.address);
             expect(await campaign.hasRewardTokenAdded(tokenA.address)).to.be.equal(true);
 
-            expect(await feeAsset.balanceOf(signers[2].address)).to.be.equal(0);
-            expect(await feeAsset.balanceOf(factory.address)).to.be.equal(FEE.mul(2));
+            expect(await tokenA.balanceOf(signers[2].address)).to.be.equal(0);
+            expect(await tokenA.balanceOf(factory.address)).to.be.equal(fee.add(fee2));
 
             expect(await tokenA.balanceOf(signers[2].address)).to.be.equal(0);
-            expect(await tokenA.balanceOf(campaign.address)).to.be.equal(ethers.utils.parseEther('16'));
+            expect(await tokenA.balanceOf(campaign.address)).to.be.equal(realRewards.add(realRewards2));
         });
 
         it('Should add multiple reward tokens for a single campaign', async () => {
-            await feeAsset.mint(signers[0].address, FEE);
-            await feeAsset.approve(campaign.address, FEE);
             await campaign.enableReward(2);
 
-            await tokenA.mint(signers[0].address, ethers.utils.parseEther('1'));
-            await tokenA.approve(campaign.address, ethers.utils.parseEther('1'));
-            await campaign.notifyRewardAmount(tokenA.address, ethers.utils.parseEther('1'));
+            const reward = ethers.utils.parseEther('1');
+            const fee = reward.mul(FEE).div(FEE_DIVIDER);
+            const realRewards = reward.sub(fee);
+
+            await tokenA.mint(signers[0].address, reward);
+            await tokenA.approve(campaign.address, reward);
+            await campaign.notifyRewardAmount(tokenA.address, reward, 2);
 
             let blockStamp = (await ethers.provider.getBlock('latest')).timestamp;
             let data = await campaign.rewardData(tokenA.address);
-            expect(data[0]).to.be.equal(ethers.utils.parseEther('1').div(2 * 30 * 24 * 60 * 60));
+            expect(data[0]).to.be.equal(realRewards.div(2 * 30 * 24 * 60 * 60));
             expect(data[1]).to.be.equal(await campaign.periodFinish());
             expect(data[2]).to.be.equal(blockStamp);
             expect(data[3]).to.be.equal(0);
@@ -229,16 +223,20 @@ describe.only('MultiRewards', function () {
             expect(await campaign.hasRewardTokenAdded(tokenA.address)).to.be.equal(true);
 
             expect(await tokenA.balanceOf(signers[2].address)).to.be.equal(0);
-            expect(await tokenA.balanceOf(campaign.address)).to.be.equal(ethers.utils.parseEther('1'));
+            expect(await tokenA.balanceOf(campaign.address)).to.be.equal(realRewards);
 
-            await tokenB.mint(signers[0].address, ethers.utils.parseEther('1'));
-            await tokenB.approve(campaign.address, ethers.utils.parseEther('1'));
-            await campaign.notifyRewardAmount(tokenB.address, ethers.utils.parseEther('1'));
+            const reward2 = ethers.utils.parseEther('1');
+            const fee2 = reward2.mul(FEE).div(FEE_DIVIDER);
+            const realRewards2 = reward2.sub(fee2);
+
+            await tokenB.mint(signers[0].address, reward2);
+            await tokenB.approve(campaign.address, reward2);
+            await campaign.notifyRewardAmount(tokenB.address, reward2, 2);
 
             blockStamp = (await ethers.provider.getBlock('latest')).timestamp;
             data = await campaign.rewardData(tokenB.address);
             expect(data[0]).to.be.equal(
-                ethers.utils.parseEther('1')
+                realRewards2
                     .div(
                         await campaign.periodFinish() - blockStamp
                     )
@@ -251,32 +249,38 @@ describe.only('MultiRewards', function () {
             expect(await campaign.hasRewardTokenAdded(tokenB.address)).to.be.equal(true);
 
             expect(await tokenB.balanceOf(signers[2].address)).to.be.equal(0);
-            expect(await tokenB.balanceOf(campaign.address)).to.be.equal(ethers.utils.parseEther('1'));
+            expect(await tokenB.balanceOf(campaign.address)).to.be.equal(realRewards2);
 
         });
 
         it('Should add a few times rewards for a given token in single campaign run', async () => {
-            await feeAsset.mint(signers[0].address, FEE);
-            await feeAsset.approve(campaign.address, FEE);
             await campaign.enableReward(2);
 
-            await tokenA.mint(signers[0].address, ethers.utils.parseEther('1'));
-            await tokenA.approve(campaign.address, ethers.utils.parseEther('1'));
-            await campaign.notifyRewardAmount(tokenA.address, ethers.utils.parseEther('1'));
+            const reward = ethers.utils.parseEther('1');
+            const fee = reward.mul(FEE).div(FEE_DIVIDER);
+            const realRewards = reward.sub(fee);
+
+            await tokenA.mint(signers[0].address, reward);
+            await tokenA.approve(campaign.address, reward);
+            await campaign.notifyRewardAmount(tokenA.address, reward, 2);
 
             const rewardRate = (await campaign.rewardData(tokenA.address))[0];
             await ethers.provider.send("evm_increaseTime", [2 * 24 * 60 * 60]);
             await ethers.provider.send("evm_mine", []);
 
-            await tokenA.mint(signers[0].address, ethers.utils.parseEther('1'));
-            await tokenA.approve(campaign.address, ethers.utils.parseEther('1'));
-            await campaign.notifyRewardAmount(tokenA.address, ethers.utils.parseEther('1'));
+            const reward2 = ethers.utils.parseEther('1');
+            const fee2 = reward2.mul(FEE).div(FEE_DIVIDER);
+            const realRewards2 = reward2.sub(fee2);
+
+            await tokenA.mint(signers[0].address, reward2);
+            await tokenA.approve(campaign.address, reward2);
+            await campaign.notifyRewardAmount(tokenA.address, reward2, 2);
 
             const blockStamp = (await ethers.provider.getBlock('latest')).timestamp;
             const data = await campaign.rewardData(tokenA.address);
             const leftOver = rewardRate.mul(await campaign.periodFinish() - blockStamp);
             expect(data[0]).to.be.equal(
-                leftOver.add(ethers.utils.parseEther('1')).div(await campaign.periodFinish() - blockStamp)
+                leftOver.add(realRewards2).div(await campaign.periodFinish() - blockStamp)
             );
             expect(data[1]).to.be.equal(await campaign.periodFinish());
             expect(data[2]).to.be.equal(blockStamp);
@@ -286,36 +290,43 @@ describe.only('MultiRewards', function () {
             expect(await campaign.hasRewardTokenAdded(tokenA.address)).to.be.equal(true);
 
             expect(await tokenA.balanceOf(signers[2].address)).to.be.equal(0);
-            expect(await tokenA.balanceOf(campaign.address)).to.be.equal(ethers.utils.parseEther('2'));
+            expect(await tokenA.balanceOf(campaign.address)).to.be.equal(realRewards.add(realRewards2));
         });
 
         it('Should revert if the campaign has not been configured yet', async () => {
             await expect(
-                campaign.notifyRewardAmount(ethers.constants.AddressZero, ethers.utils.parseEther('1'))
+                campaign.notifyRewardAmount(ethers.constants.AddressZero, ethers.utils.parseEther('1'), 2)
             ).to.be.revertedWith('Campaign not configured yet');
         });
 
         it('Should revert if the rewards token is not a whitelisted one', async () => {
-            await feeAsset.mint(signers[0].address, FEE);
-            await feeAsset.approve(campaign.address, FEE);
             await campaign.enableReward(2);
 
             await expect(
-                campaign.notifyRewardAmount(ethers.constants.AddressZero, ethers.utils.parseEther('1'))
+                campaign.notifyRewardAmount(ethers.constants.AddressZero, ethers.utils.parseEther('1'), 2)
             ).to.be.revertedWith('Not whitelisted reward token');
         });
 
         it('Should revert if the amount of rewards is too little making the rate 0', async () => {
-            await feeAsset.mint(signers[0].address, FEE);
-            await feeAsset.approve(campaign.address, FEE);
             await campaign.enableReward(2);
 
             await tokenA.mint(signers[0].address, ethers.utils.parseEther('1'));
             await tokenA.approve(campaign.address, ethers.utils.parseEther('1'));
 
             await expect(
-                campaign.notifyRewardAmount(tokenA.address, 10)
+                campaign.notifyRewardAmount(tokenA.address, 10, 2)
             ).to.be.revertedWith('Too little rewards for the duration');
+        });
+
+        it('Should revert if APR is not correctly estimated', async () => {
+            await campaign.enableReward(1);
+
+            await tokenA.mint(signers[0].address, ethers.utils.parseEther('1'));
+            await tokenA.approve(campaign.address, ethers.utils.parseEther('1'));
+
+            await expect(
+                campaign.notifyRewardAmount(tokenA.address, ethers.utils.parseEther('1'), 2)
+            ).to.be.revertedWith('APR estimated could be wrong');
         });
     });
 
@@ -359,7 +370,7 @@ describe.only('MultiRewards', function () {
         it('Should revert when amount is 0', async () => {
             await expect(
                 campaign.stake(0)
-            ).to.be.revertedWith('Cannot withdraw 0');
+            ).to.be.revertedWith('Cannot stake 0');
         });
     });
 
@@ -395,7 +406,7 @@ describe.only('MultiRewards', function () {
         });
 
         it('Should revert when amount is 0', async () => {
-            await expect(campaign.withdraw(0)).to.be.revertedWith('Cannot stake 0');
+            await expect(campaign.withdraw(0)).to.be.revertedWith('Cannot withdraw 0');
         });
     });
 
@@ -411,15 +422,16 @@ describe.only('MultiRewards', function () {
         });
 
         it('Should get ERC20 token rewards', async () => {
-            await feeAsset.mint(signers[0].address, FEE);
-            await feeAsset.approve(campaign.address, FEE);
             await campaign.enableReward(2);
 
             const rewards = ethers.utils.parseEther('1');
+            const fee = rewards.mul(FEE).div(FEE_DIVIDER);
+            const realRewards = rewards.sub(fee);
+
             await tokenA.mint(signers[0].address, rewards);
             await tokenA.approve(campaign.address, rewards);
 
-            await campaign.notifyRewardAmount(tokenA.address, rewards);
+            await campaign.notifyRewardAmount(tokenA.address, rewards, 2);
 
             const stake = ethers.utils.parseEther('2');
             await pool.mint(signers[0].address, stake);
@@ -440,7 +452,7 @@ describe.only('MultiRewards', function () {
             const rewardsAccumulated = rewardsData.rewardRate.mul(stampDiff);
 
             expect(await tokenA.balanceOf(signers[0].address)).to.be.closeTo(rewardsAccumulated, 1); // 1 wei difference
-            expect(await tokenA.balanceOf(campaign.address)).to.be.closeTo(rewards.sub(rewardsAccumulated), 1); // 1 wei difference
+            expect(await tokenA.balanceOf(campaign.address)).to.be.closeTo(realRewards.sub(rewardsAccumulated), 1); // 1 wei difference
 
             expect(rewardsData.lastUpdateTime).to.be.equal(rewardsStamp);
             expect(rewardsData.rewardPerTokenStored).to.be.equal(rewardsAccumulated.div(2)); // total supply
@@ -448,28 +460,23 @@ describe.only('MultiRewards', function () {
         });
 
         it('Should get HBAR rewards', async () => {
-            const Factory = await ethers.getContractFactory('Factory');
-            const factoryHBAR = await (await Factory.deploy(
-                whbar.address, FEE, feeAsset.address, poolsFactory.address
-            )).deployed();
+            await factory.setRewardTokens([whbar.address], true);
 
-            await factoryHBAR.deploy(whbar.address, tokenB.address);
-            const campaignHBAR = await ethers.getContractAt('MultiRewards', await factoryHBAR.campaigns(0));
+            await campaign.enableReward(2);
 
-            await feeAsset.mint(signers[0].address, FEE);
-            await feeAsset.approve(campaignHBAR.address, FEE);
-            await campaignHBAR.enableReward(2);
+            const rewards = ethers.utils.parseEther('1');
+            const fee = rewards.mul(FEE).div(FEE_DIVIDER);
+            const realRewards = rewards.sub(fee);
 
-            const rewards = ethers.utils.parseEther("1");
             await whbar.deposit({ value: rewards });
-            await whbar.approve(campaignHBAR.address, rewards);
+            await whbar.approve(campaign.address, rewards);
 
-            await campaignHBAR.notifyRewardAmount(whbar.address, rewards);
+            await campaign.notifyRewardAmount(whbar.address, rewards, 2);
 
             const stake = ethers.utils.parseEther('2');
             await pool.mint(signers[0].address, stake);
-            await pool.approve(campaignHBAR.address, stake);
-            await campaignHBAR.stake(stake);
+            await pool.approve(campaign.address, stake);
+            await campaign.stake(stake);
 
             const stakeStamp = (await ethers.provider.getBlock('latest')).timestamp;
 
@@ -477,37 +484,42 @@ describe.only('MultiRewards', function () {
             await ethers.provider.send("evm_mine", []);
 
             const balanceBefore = await ethers.provider.getBalance(signers[0].address);
-            await campaignHBAR.getReward();
+            await campaign.getReward();
             const balanceAfter = await ethers.provider.getBalance(signers[0].address);
 
             const rewardsStamp = (await ethers.provider.getBlock('latest')).timestamp;
             const stampDiff = rewardsStamp - stakeStamp;
 
-            const rewardsData = await campaignHBAR.rewardData(whbar.address);
+            const rewardsData = await campaign.rewardData(whbar.address);
             const rewardsAccumulated = rewardsData.rewardRate.mul(stampDiff);
 
             expect(balanceBefore).to.be.lt(balanceAfter);
-            expect(await whbar.balanceOf(campaignHBAR.address)).to.be.closeTo(rewards.sub(rewardsAccumulated), 1); // 1 wei difference
+            expect(await whbar.balanceOf(campaign.address)).to.be.closeTo(realRewards.sub(rewardsAccumulated), 1); // 1 wei difference
 
             expect(rewardsData.lastUpdateTime).to.be.equal(rewardsStamp);
             expect(rewardsData.rewardPerTokenStored).to.be.equal(rewardsAccumulated.div(2)); // total supply
-            expect(await campaignHBAR.userRewardPerTokenPaid(signers[0].address, whbar.address)).to.be.equal(rewardsAccumulated.div(2));
+            expect(await campaign.userRewardPerTokenPaid(signers[0].address, whbar.address)).to.be.equal(rewardsAccumulated.div(2));
         });
 
         it('Should get multiple tokens rewards', async () => {
-            await feeAsset.mint(signers[0].address, FEE);
-            await feeAsset.approve(campaign.address, FEE);
             await campaign.enableReward(2);
 
             const rewards = ethers.utils.parseEther('1');
+            const fee = rewards.mul(FEE).div(FEE_DIVIDER);
+            const realRewards = rewards.sub(fee);
+
             await tokenA.mint(signers[0].address, rewards);
             await tokenA.approve(campaign.address, rewards);
 
-            await tokenB.mint(signers[0].address, rewards.mul(15));
-            await tokenB.approve(campaign.address, rewards.mul(15));
+            const rewards2 = ethers.utils.parseEther('15');
+            const fee2 = rewards2.mul(FEE).div(FEE_DIVIDER);
+            const realRewards2 = rewards2.sub(fee2);
 
-            await campaign.notifyRewardAmount(tokenA.address, rewards);
-            await campaign.notifyRewardAmount(tokenB.address, rewards.mul(15));
+            await tokenB.mint(signers[0].address, rewards2);
+            await tokenB.approve(campaign.address, rewards2);
+
+            await campaign.notifyRewardAmount(tokenA.address, rewards, 2);
+            await campaign.notifyRewardAmount(tokenB.address, rewards2, 2);
 
             const stake = ethers.utils.parseEther('2');
             await pool.mint(signers[0].address, stake);
@@ -530,9 +542,9 @@ describe.only('MultiRewards', function () {
             const rewardsAccumulatedB = rewardsDataB.rewardRate.mul(stampDiff);
 
             expect(await tokenA.balanceOf(signers[0].address)).to.be.closeTo(rewardsAccumulatedA, 1);
-            expect(await tokenA.balanceOf(campaign.address)).to.be.closeTo(rewards.sub(rewardsAccumulatedA), 1);
+            expect(await tokenA.balanceOf(campaign.address)).to.be.closeTo(realRewards.sub(rewardsAccumulatedA), 1);
             expect(await tokenB.balanceOf(signers[0].address)).to.be.closeTo(rewardsAccumulatedB, 1);
-            expect(await tokenB.balanceOf(campaign.address)).to.be.closeTo(rewards.mul(15).sub(rewardsAccumulatedB), 1);
+            expect(await tokenB.balanceOf(campaign.address)).to.be.closeTo(realRewards2.sub(rewardsAccumulatedB), 1);
 
             expect(rewardsDataA.lastUpdateTime).to.be.equal(rewardsStamp);
             expect(rewardsDataA.rewardPerTokenStored).to.be.equal(rewardsAccumulatedA.div(2));
@@ -543,20 +555,25 @@ describe.only('MultiRewards', function () {
             expect(await campaign.userRewardPerTokenPaid(signers[0].address, tokenB.address)).to.be.equal(rewardsAccumulatedB.div(2));
         });
 
-        it.only('Should get multiple tokens rewards for multiple users', async () => {
-            await feeAsset.mint(signers[0].address, FEE);
-            await feeAsset.approve(campaign.address, FEE);
+        it('Should get multiple tokens rewards for multiple users', async () => {
             await campaign.enableReward(2);
 
             const rewards = ethers.utils.parseEther('1');
+            const fee = rewards.mul(FEE).div(FEE_DIVIDER);
+            const realRewards = rewards.sub(fee);
+
             await tokenA.mint(signers[0].address, rewards);
             await tokenA.approve(campaign.address, rewards);
 
-            await tokenB.mint(signers[0].address, rewards.mul(15));
-            await tokenB.approve(campaign.address, rewards.mul(15));
+            const rewards2 = ethers.utils.parseEther('1');
+            const fee2 = rewards2.mul(FEE).div(FEE_DIVIDER);
+            const realRewards2 = rewards2.sub(fee2);
 
-            await campaign.notifyRewardAmount(tokenA.address, rewards);
-            await campaign.notifyRewardAmount(tokenB.address, rewards.mul(15));
+            await tokenB.mint(signers[0].address, rewards2);
+            await tokenB.approve(campaign.address, rewards2);
+
+            await campaign.notifyRewardAmount(tokenA.address, rewards, 2);
+            await campaign.notifyRewardAmount(tokenB.address, rewards2, 2);
 
             const stake = ethers.utils.parseEther('2');
             await pool.mint(signers[0].address, stake);
@@ -603,25 +620,78 @@ describe.only('MultiRewards', function () {
             expect(await tokenA.balanceOf(signers[1].address)).to.be.closeTo(rewardsAccumulatedAUser2, 5);
             expect(await tokenB.balanceOf(signers[1].address)).to.be.closeTo(rewardsAccumulatedBUser2, 5);
 
-            // // Campaign balances
-            expect(await tokenA.balanceOf(campaign.address)).to.be.closeTo(rewards.sub(rewardsAccumulatedAUser1.add(rewardsAccumulatedAUser2)), 5);
-            expect(await tokenB.balanceOf(campaign.address)).to.be.closeTo(rewards.mul(15).sub(rewardsAccumulatedBUser1.add(rewardsAccumulatedBUser2)), 5);
+            // Campaign balances
+            expect(await tokenA.balanceOf(campaign.address)).to.be.closeTo(realRewards.sub(rewardsAccumulatedAUser1.add(rewardsAccumulatedAUser2)), 5);
+            expect(await tokenB.balanceOf(campaign.address)).to.be.closeTo(realRewards2.sub(rewardsAccumulatedBUser1.add(rewardsAccumulatedBUser2)), 5);
 
-
-            // expect(rewardsDataA.lastUpdateTime).to.be.equal(rewardsStamp);
-            // expect(rewardsDataA.rewardPerTokenStored).to.be.equal(rewardsAccumulatedA.div(2));
-            // expect(rewardsDataB.lastUpdateTime).to.be.equal(rewardsStamp);
-            // expect(rewardsDataB.rewardPerTokenStored).to.be.equal(rewardsAccumulatedB.div(2));
-            // Todo: Fix it
             expect(await campaign.userRewardPerTokenPaid(signers[0].address, tokenA.address)).to.be.equal(rewardsAccumulatedAUser1.div(2));
             expect(await campaign.userRewardPerTokenPaid(signers[0].address, tokenB.address)).to.be.equal(rewardsAccumulatedBUser1.div(2));
-            expect(await campaign.userRewardPerTokenPaid(signers[1].address, tokenA.address)).to.be.equal(rewardsAccumulatedAUser2.div(3));
-            expect(await campaign.userRewardPerTokenPaid(signers[1].address, tokenB.address)).to.be.equal(rewardsAccumulatedBUser2.div(3));
+            expect(await campaign.userRewardPerTokenPaid(signers[1].address, tokenA.address)).to.be.equal(rewardsAccumulatedAUser1.div(2).add(rewardRateA.mul(rewardsStampUser2 - rewardsStampUser1).div(5)));
+            expect(await campaign.userRewardPerTokenPaid(signers[1].address, tokenB.address)).to.be.equal(rewardsAccumulatedBUser1.div(2).add(rewardRateB.mul(rewardsStampUser2 - rewardsStampUser1).div(5)));
+
+            // General state
+            const rewardsDataA = await campaign.rewardData(tokenA.address);
+            const rewardsDataB = await campaign.rewardData(tokenB.address);
+
+            expect(rewardsDataA.lastUpdateTime).to.be.equal(rewardsStampUser2);
+            expect(rewardsDataB.lastUpdateTime).to.be.equal(rewardsStampUser2);
+            expect(rewardsDataA.rewardPerTokenStored).to.be.equal(rewardsAccumulatedAUser1.div(2).add(rewardRateA.mul(rewardsStampUser2 - rewardsStampUser1).div(5)));
+            expect(rewardsDataB.rewardPerTokenStored).to.be.equal(rewardsAccumulatedBUser1.div(2).add(rewardRateB.mul(rewardsStampUser2 - rewardsStampUser1).div(5)));
         });
     });
 
     describe('Exit', () => {
         it('Should withdraw and get rewards at once', async () => {
+            await campaign.enableReward(2);
+
+            const rewards = ethers.utils.parseEther('1');
+            const fee = rewards.mul(FEE).div(FEE_DIVIDER);
+            const realRewards = rewards.sub(fee);
+
+            await tokenA.mint(signers[0].address, rewards);
+            await tokenA.approve(campaign.address, rewards);
+
+            await campaign.notifyRewardAmount(tokenA.address, rewards, 2);
+
+            const stake = ethers.utils.parseEther('1');
+            await pool.mint(signers[0].address, stake);
+            await pool.approve(campaign.address, stake);
+
+            await campaign.stake(stake);
+
+            const stakeStamp = (await ethers.provider.getBlock('latest')).timestamp;
+
+            await ethers.provider.send("evm_increaseTime", [30 * 24 * 60 * 60]);
+            await ethers.provider.send("evm_mine", []);
+
+            await campaign.exit();
+
+            const rewardsStamp = (await ethers.provider.getBlock('latest')).timestamp;
+            const stampDiff = rewardsStamp - stakeStamp;
+
+            const rewardsData = await campaign.rewardData(tokenA.address);
+            const rewardsAccumulated = rewardsData.rewardRate.mul(stampDiff);
+
+            expect(await tokenA.balanceOf(signers[0].address)).to.be.closeTo(rewardsAccumulated, 1); // 1 wei difference
+            expect(await tokenA.balanceOf(campaign.address)).to.be.closeTo(realRewards.sub(rewardsAccumulated), 1); // 1 wei difference
+
+            expect(rewardsData.lastUpdateTime).to.be.equal(rewardsStamp);
+            expect(rewardsData.rewardPerTokenStored).to.be.equal(rewardsAccumulated); // total supply
+            expect(await campaign.userRewardPerTokenPaid(signers[0].address, tokenA.address)).to.be.equal(rewardsAccumulated);
+
+            expect(await pool.balanceOf(signers[0].address)).to.be.equal(stake);
+        });
+
+        it('Should withdraw and get 0 rewards when there is no running campaign', async () => {
+            const stake = ethers.utils.parseEther('1');
+            await pool.mint(signers[0].address, stake);
+            await pool.approve(campaign.address, stake);
+
+            await campaign.stake(stake);
+            await campaign.exit();
+
+            expect(await tokenA.balanceOf(signers[0].address)).to.be.equal(0);
+            expect(await tokenB.balanceOf(signers[0].address)).to.be.equal(0);
         });
     });
 
@@ -644,74 +714,248 @@ describe.only('MultiRewards', function () {
     });
 
     describe('Flows', () => {
-        xit('Should extend a campaign and user keeps rewards from the first run', async () => {
-            await feeAsset.mint(signers[0].address, FEE.mul(2));
-            await feeAsset.approve(campaign.address, FEE.mul(2));
+        it('Should extend a campaign and user keeps rewards from the first run', async () => {
             await campaign.enableReward(2);
 
-            await tokenA.mint(signers[0].address, ethers.utils.parseEther('1'));
-            await tokenA.approve(campaign.address, ethers.utils.parseEther('1'));
-            await campaign.notifyRewardAmount(tokenA.address, ethers.utils.parseEther('1'));
+            const reward = ethers.utils.parseEther('1');
+            const fee = reward.mul(FEE).div(FEE_DIVIDER);
+            const realRewards = reward.sub(fee);
 
-            await ethers.provider.send('evm_increaseTime', [60 * 24 * 60 * 60]); // skip 2 months
+            await tokenA.mint(signers[0].address, reward);
+            await tokenA.approve(campaign.address, reward);
+
+            const stake = ethers.utils.parseEther('2');
+            await pool.mint(signers[0].address, stake);
+            await pool.approve(campaign.address, stake);
+
+            await campaign.notifyRewardAmount(tokenA.address, reward, 2);
+            await campaign.stake(stake);
+
+            const stakeStamp = (await ethers.provider.getBlock('latest')).timestamp;
+
+            await ethers.provider.send('evm_increaseTime', [61 * 24 * 60 * 60]); // skip 2 months
             await ethers.provider.send('evm_mine', []);
 
+            const rewardsExpected = (await campaign.periodFinish()).sub(stakeStamp).mul(
+                (await campaign.rewardData(tokenA.address))[0]
+            );
+
+            expect(await campaign.earned(signers[0].address, tokenA.address)).to.be.closeTo(
+                rewardsExpected, 1
+            );
+
             await campaign.enableReward(2);
 
-            await tokenA.mint(signers[0].address, ethers.utils.parseEther('15'));
-            await tokenA.approve(campaign.address, ethers.utils.parseEther('15'));
-            await campaign.notifyRewardAmount(tokenA.address, ethers.utils.parseEther('15'));
+            const reward2 = ethers.utils.parseEther('15');
+            const fee2 = reward2.mul(FEE).div(FEE_DIVIDER);
+            const realRewards2 = reward2.sub(fee2);
 
-            const blockStamp = (await ethers.provider.getBlock('latest')).timestamp;
-            const data = await campaign.rewardData(tokenA.address);
-            expect(data[0]).to.be.equal(ethers.utils.parseEther('15').div(60 * 24 * 60 * 60));
-            expect(data[1]).to.be.equal(await campaign.periodFinish());
-            expect(data[2]).to.be.equal(blockStamp);
-            expect(data[3]).to.be.equal(0);
+            await tokenA.mint(signers[0].address, reward2);
+            await tokenA.approve(campaign.address, reward2);
+            await campaign.notifyRewardAmount(tokenA.address, reward2, 2);
 
-            expect(await campaign.rewardTokens(0)).to.be.equal(tokenA.address);
-            expect(await campaign.hasRewardTokenAdded(tokenA.address)).to.be.equal(true);
+            const notifyStamp = (await ethers.provider.getBlock('latest')).timestamp;
 
-            expect(await feeAsset.balanceOf(signers[2].address)).to.be.equal(0);
-            expect(await feeAsset.balanceOf(factory.address)).to.be.equal(FEE.mul(2));
+            await ethers.provider.send('evm_increaseTime', [30 * 24 * 60 * 60]); // skip 1 month
+            await ethers.provider.send('evm_mine', []);
 
-            expect(await tokenA.balanceOf(signers[2].address)).to.be.equal(0);
-            expect(await tokenA.balanceOf(campaign.address)).to.be.equal(ethers.utils.parseEther('16'));
+            await campaign.getReward();
+
+            const rewardsStamp = (await ethers.provider.getBlock('latest')).timestamp;
+            const stampDiff = rewardsStamp - notifyStamp;
+
+            const rewardsData = await campaign.rewardData(tokenA.address);
+            const rewardsAccumulated = rewardsData.rewardRate.mul(stampDiff).add(rewardsExpected);
+
+            expect(await tokenA.balanceOf(signers[0].address)).to.be.closeTo(rewardsAccumulated, 1); // 1 wei difference
+            expect(await tokenA.balanceOf(campaign.address)).to.be.closeTo(realRewards.add(realRewards2).sub(rewardsAccumulated), 1); // 1 wei difference
+
+            await ethers.provider.send('evm_increaseTime', [31 * 24 * 60 * 60]); // skip 1 month
+            await ethers.provider.send('evm_mine', []);
+
+            await campaign.getReward();
+
+            const rewardsExpected2 = (await campaign.periodFinish()).sub(rewardsStamp).mul(
+                (await campaign.rewardData(tokenA.address))[0]
+            ).add(rewardsAccumulated);
+
+            expect(await tokenA.balanceOf(signers[0].address)).to.be.closeTo(rewardsExpected2, 1);
+            expect(await tokenA.balanceOf(campaign.address)).to.be.closeTo(realRewards.add(realRewards2).sub(rewardsExpected2), 1);
         });
 
-        xit('Should extend a campaign and user entering after it to receive nothing', async () => {
-            await feeAsset.mint(signers[0].address, FEE.mul(2));
-            await feeAsset.approve(campaign.address, FEE.mul(2));
+        it('Should extend a campaign twice and user keeps rewards from both of them', async () => {
             await campaign.enableReward(2);
 
-            await tokenA.mint(signers[0].address, ethers.utils.parseEther('1'));
-            await tokenA.approve(campaign.address, ethers.utils.parseEther('1'));
-            await campaign.notifyRewardAmount(tokenA.address, ethers.utils.parseEther('1'));
+            const reward = ethers.utils.parseEther('1');
+            const fee = reward.mul(FEE).div(FEE_DIVIDER);
+            const realRewards = reward.sub(fee);
 
-            await ethers.provider.send('evm_increaseTime', [60 * 24 * 60 * 60]); // skip 2 months
+            await tokenA.mint(signers[0].address, reward);
+            await tokenA.approve(campaign.address, reward);
+
+            const stake = ethers.utils.parseEther('2');
+            await pool.mint(signers[0].address, stake);
+            await pool.approve(campaign.address, stake);
+
+            await campaign.notifyRewardAmount(tokenA.address, reward, 2);
+            await campaign.stake(stake);
+
+            const stakeStamp = (await ethers.provider.getBlock('latest')).timestamp;
+
+            await ethers.provider.send('evm_increaseTime', [61 * 24 * 60 * 60]); // skip 2 months
             await ethers.provider.send('evm_mine', []);
 
+            const rewardsExpected = (await campaign.periodFinish()).sub(stakeStamp).mul(
+                (await campaign.rewardData(tokenA.address))[0]
+            );
+
+            expect(await campaign.earned(signers[0].address, tokenA.address)).to.be.closeTo(
+                rewardsExpected, 1
+            );
+
             await campaign.enableReward(2);
 
-            await tokenA.mint(signers[0].address, ethers.utils.parseEther('15'));
-            await tokenA.approve(campaign.address, ethers.utils.parseEther('15'));
-            await campaign.notifyRewardAmount(tokenA.address, ethers.utils.parseEther('15'));
+            const reward2 = ethers.utils.parseEther('15');
+            const fee2 = reward2.mul(FEE).div(FEE_DIVIDER);
+            const realRewards2 = reward2.sub(fee2);
 
-            const blockStamp = (await ethers.provider.getBlock('latest')).timestamp;
-            const data = await campaign.rewardData(tokenA.address);
-            expect(data[0]).to.be.equal(ethers.utils.parseEther('15').div(60 * 24 * 60 * 60));
-            expect(data[1]).to.be.equal(await campaign.periodFinish());
-            expect(data[2]).to.be.equal(blockStamp);
-            expect(data[3]).to.be.equal(0);
+            await tokenA.mint(signers[0].address, reward2);
+            await tokenA.approve(campaign.address, reward2);
+            await campaign.notifyRewardAmount(tokenA.address, reward2, 2);
 
-            expect(await campaign.rewardTokens(0)).to.be.equal(tokenA.address);
-            expect(await campaign.hasRewardTokenAdded(tokenA.address)).to.be.equal(true);
+            const notifyStamp = (await ethers.provider.getBlock('latest')).timestamp;
 
-            expect(await feeAsset.balanceOf(signers[2].address)).to.be.equal(0);
-            expect(await feeAsset.balanceOf(factory.address)).to.be.equal(FEE.mul(2));
+            await ethers.provider.send('evm_increaseTime', [61 * 24 * 60 * 60]); // skip 1 month
+            await ethers.provider.send('evm_mine', []);
 
-            expect(await tokenA.balanceOf(signers[2].address)).to.be.equal(0);
-            expect(await tokenA.balanceOf(campaign.address)).to.be.equal(ethers.utils.parseEther('16'));
+            await campaign.getReward();
+
+            const rewardsExpected2 = (await campaign.periodFinish()).sub(notifyStamp).mul(
+                (await campaign.rewardData(tokenA.address))[0]
+            ).add(rewardsExpected);
+
+            expect(await tokenA.balanceOf(signers[0].address)).to.be.closeTo(rewardsExpected2, 1);
+            expect(await tokenA.balanceOf(campaign.address)).to.be.closeTo(realRewards.add(realRewards2).sub(rewardsExpected2), 1);
+        });
+
+        it('Should extend a campaign and user entering after it to receive nothing', async () => {
+            await campaign.enableReward(2);
+
+            const reward = ethers.utils.parseEther('1');
+            const fee = reward.mul(FEE).div(FEE_DIVIDER);
+            const realRewards = reward.sub(fee);
+
+            await tokenA.mint(signers[0].address, reward);
+            await tokenA.approve(campaign.address, reward);
+
+            const stake = ethers.utils.parseEther('2');
+            await pool.mint(signers[0].address, stake);
+            await pool.approve(campaign.address, stake);
+
+            await campaign.notifyRewardAmount(tokenA.address, reward, 2);
+            await campaign.stake(stake);
+
+            const stakeStamp = (await ethers.provider.getBlock('latest')).timestamp;
+
+            await ethers.provider.send('evm_increaseTime', [61 * 24 * 60 * 60]); // skip 2 months
+            await ethers.provider.send('evm_mine', []);
+
+            const rewardsExpected = (await campaign.periodFinish()).sub(stakeStamp).mul(
+                (await campaign.rewardData(tokenA.address))[0]
+            );
+
+            expect(await campaign.earned(signers[0].address, tokenA.address)).to.be.closeTo(
+                rewardsExpected, 1
+            );
+
+            await pool.mint(signers[1].address, stake);
+            await pool.connect(signers[1]).approve(campaign.address, stake);
+            await campaign.connect(signers[1]).stake(stake);
+
+            expect(await campaign.earned(signers[1].address, tokenA.address)).to.be.equal(0);
+            await campaign.connect(signers[1]).getReward();
+            expect(await tokenA.balanceOf(signers[1].address)).to.be.equal(0);
+
+            await campaign.enableReward(2);
+
+            const reward2 = ethers.utils.parseEther('15');
+            const fee2 = reward2.mul(FEE).div(FEE_DIVIDER);
+            const realRewards2 = reward2.sub(fee2);
+
+            await tokenA.mint(signers[0].address, reward2);
+            await tokenA.approve(campaign.address, reward2);
+            await campaign.notifyRewardAmount(tokenA.address, reward2, 2);
+
+            const notifyStamp = (await ethers.provider.getBlock('latest')).timestamp;
+
+            await ethers.provider.send('evm_increaseTime', [61 * 24 * 60 * 60]); // skip 2 months
+            await ethers.provider.send('evm_mine', []);
+
+            await campaign.getReward();
+            await campaign.connect(signers[1]).getReward();
+
+            const stampDiff = (await campaign.periodFinish()).sub(notifyStamp);
+
+            const rewardsData = await campaign.rewardData(tokenA.address);
+            const rewardsAccumulated1 = rewardsData.rewardRate.mul(stampDiff).div(2).add(rewardsExpected);
+            const rewardsAccumulated2 = rewardsData.rewardRate.mul(stampDiff).div(2);
+
+            expect(await tokenA.balanceOf(signers[0].address)).to.be.closeTo(rewardsAccumulated1, 1); // 1 wei difference
+            expect(await tokenA.balanceOf(signers[1].address)).to.be.closeTo(rewardsAccumulated2, 1); // 1 wei difference
+            expect(await tokenA.balanceOf(campaign.address)).to.be.closeTo(realRewards.add(realRewards2).sub(rewardsAccumulated1.add(rewardsAccumulated2)), 1); // 1 wei difference
+        });
+
+        it('Should change campaign rate and the user to receive the rewards correctly', async () => {
+            await campaign.enableReward(2);
+
+            const reward = ethers.utils.parseEther('1');
+            const fee = reward.mul(FEE).div(FEE_DIVIDER);
+            const realRewards = reward.sub(fee);
+
+            await tokenA.mint(signers[0].address, reward);
+            await tokenA.approve(campaign.address, reward);
+
+            const stake = ethers.utils.parseEther('2');
+            await pool.mint(signers[0].address, stake);
+            await pool.approve(campaign.address, stake);
+
+            await campaign.notifyRewardAmount(tokenA.address, reward, 2);
+            await campaign.stake(stake);
+
+            const stakeStamp = (await ethers.provider.getBlock('latest')).timestamp;
+
+            await ethers.provider.send('evm_increaseTime', [30 * 24 * 60 * 60]); // skip 1 month
+            await ethers.provider.send('evm_mine', []);
+
+            const reward2 = ethers.utils.parseEther('1');
+            const fee2 = reward2.mul(FEE).div(FEE_DIVIDER);
+            const realRewards2 = reward2.sub(fee2);
+
+            await tokenA.mint(signers[0].address, reward2);
+            await tokenA.approve(campaign.address, reward2);
+
+            const oldRate = (await campaign.rewardData(tokenA.address))[0];
+            await campaign.notifyRewardAmount(tokenA.address, reward2, 2);
+
+            const notifyStamp = (await ethers.provider.getBlock('latest')).timestamp;
+            const periodRemaining = (await campaign.periodFinish()).sub(notifyStamp);
+            const newRate = oldRate.mul(periodRemaining).add(realRewards2).div(
+                periodRemaining
+            );
+
+            expect((await campaign.rewardData(tokenA.address))[0]).to.be.equal(newRate);
+
+            await ethers.provider.send('evm_increaseTime', [31 * 24 * 60 * 60]); // skip 1 month
+            await ethers.provider.send('evm_mine', []);
+
+            await campaign.getReward();
+
+            const initialRewards = oldRate.mul(notifyStamp - stakeStamp);
+            const secondRewards = newRate.mul(periodRemaining);
+            const rewardsAccumulated = initialRewards.add(secondRewards);
+
+            expect(await tokenA.balanceOf(signers[0].address)).to.be.closeTo(rewardsAccumulated, 1); // 1 wei difference
+            expect(await tokenA.balanceOf(campaign.address)).to.be.closeTo(realRewards.add(realRewards2).sub(rewardsAccumulated), 1); // 1 wei difference
         });
     });
 });

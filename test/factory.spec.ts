@@ -5,8 +5,7 @@ import { smock } from '@defi-wonderland/smock';
 describe('Factory', () => {
 
     const WHBAR = '0x0000000000000000000000000000000000000001';
-    const FEE = ethers.utils.parseEther('1');
-    const FEE_ASSET = '0x0000000000000000000000000000000000000002';
+    const FEE = ethers.utils.parseEther('0.1');
     const POOLS_FACTORY = '0x0000000000000000000000000000000000000003';
 
     let signers: any;
@@ -16,30 +15,35 @@ describe('Factory', () => {
         signers = await ethers.getSigners();
 
         const Factory = await ethers.getContractFactory('Factory');
-        factory = await (await Factory.deploy(WHBAR, FEE, FEE_ASSET, POOLS_FACTORY)).deployed();
+        factory = await (await Factory.deploy(WHBAR, FEE, POOLS_FACTORY)).deployed();
     });
 
     it('Should deploy correctly ', async () => {
         expect(await factory.WHBAR()).to.equal(WHBAR);
         expect(await factory.fee()).to.equal(FEE);
-        expect(await factory.feeAsset()).to.equal(FEE_ASSET);
         expect(await factory.poolsFactory()).to.equal(POOLS_FACTORY);
+    });
+
+    it('Should revert deployment when fee is out of range ', async () => {
+        const Factory = await ethers.getContractFactory('Factory');
+        expect(await Factory.deploy(WHBAR, FEE, POOLS_FACTORY)).to.be.revertedWith('Fee out of range');
     });
 
     describe('Set Fee', function () {
         it('Should set fee', async function () {
-            await factory.setFee(ethers.constants.AddressZero, ethers.constants.AddressZero);
-            expect(await factory.fee()).to.equal(ethers.constants.AddressZero);
-            expect(await factory.feeAsset()).to.equal(ethers.constants.AddressZero);
+            await factory.setFee(ethers.utils.parseEther('0.2'));
+            expect(await factory.fee()).to.equal(ethers.utils.parseEther('0.2'));
+        });
 
-            const feeDetails = await factory.getFeeDetails();
-            expect(feeDetails[0]).to.equal(ethers.constants.AddressZero);
-            expect(feeDetails[1]).to.equal(ethers.constants.AddressZero);
+        it('Should revert when the fee is our of range', async function () {
+            await expect(
+                factory.setFee(ethers.utils.parseEther('2'))
+            ).to.be.revertedWith('Fee out of range');
         });
 
         it('Should revert when not the owner tries to set the fee', async function () {
             await expect(
-                factory.connect(signers[1]).setFee(ethers.constants.AddressZero, ethers.constants.AddressZero)
+                factory.connect(signers[1]).setFee(ethers.utils.parseEther('0.2'))
             ).to.be.revertedWith('Only the contract owner may perform this action');
         });
     });
@@ -83,12 +87,12 @@ describe('Factory', () => {
             const token = await (await tokenFactory.deploy()).deployed();
 
             const Factory = await ethers.getContractFactory('Factory');
-            const factoryWithAsset = await (await Factory.deploy(WHBAR, FEE, token.address, POOLS_FACTORY)).deployed();
+            const factoryWithAsset = await (await Factory.deploy(WHBAR, FEE, POOLS_FACTORY)).deployed();
 
             await token.mint(factoryWithAsset.address, ethers.utils.parseEther('1'));
             expect(await token.balanceOf(factoryWithAsset.address)).to.be.equal(ethers.utils.parseEther('1'));
 
-            await factoryWithAsset.withdrawFee(signers[3].address);
+            await factoryWithAsset.withdrawFee(signers[3].address, token.address);
 
             expect(await token.balanceOf(factoryWithAsset.address)).to.be.equal(0);
             expect(await token.balanceOf(signers[3].address)).to.be.equal(ethers.utils.parseEther('1'));
@@ -96,7 +100,7 @@ describe('Factory', () => {
 
         it('Should revert when not the owner tries to withdraw the fee', async function () {
             await expect(
-                factory.connect(signers[1]).withdrawFee(signers[3].address)
+                factory.connect(signers[1]).withdrawFee(signers[3].address, ethers.constants.AddressZero)
             ).to.be.revertedWith('Only the contract owner may perform this action');
         });
     });
@@ -139,7 +143,7 @@ describe('Factory', () => {
             poolsFactory.getPair.returns(POOL);
 
             const Factory = await ethers.getContractFactory('Factory');
-            const factoryWithPool = await (await Factory.deploy(WHBAR, FEE, FEE_ASSET, poolsFactory.address)).deployed();
+            const factoryWithPool = await (await Factory.deploy(WHBAR, FEE, poolsFactory.address)).deployed();
 
             await factoryWithPool.deploy(tokenA.address, tokenB.address);
 
@@ -185,7 +189,7 @@ describe('Factory', () => {
 
 
             const Factory = await ethers.getContractFactory('Factory');
-            const factoryWithPool = await (await Factory.deploy(WHBAR, FEE, FEE_ASSET, poolsFactory.address)).deployed();
+            const factoryWithPool = await (await Factory.deploy(WHBAR, FEE, poolsFactory.address)).deployed();
 
             await expect(
                 factoryWithPool.deploy(tokenA.address, tokenB.address)
@@ -229,7 +233,7 @@ describe('Factory', () => {
             poolsFactory.getPair.returns(POOL);
 
             const Factory = await ethers.getContractFactory('Factory');
-            const factoryWithPool = await (await Factory.deploy(WHBAR, FEE, FEE_ASSET, poolsFactory.address)).deployed();
+            const factoryWithPool = await (await Factory.deploy(WHBAR, FEE, poolsFactory.address)).deployed();
 
             await factoryWithPool.deploy(tokenA.address, tokenB.address);
 
