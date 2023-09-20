@@ -1,31 +1,89 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.5.17;
+pragma solidity 0.8.0;
 
 import './MultiRewards.sol';
+import './libraries/TransferHelper.sol';
+
+import './interfaces/IPoolsFactory.sol';
+import './interfaces/ICampaignFactory.sol';
 
 /// @notice Factory contract for deploying Yield Farming campaigns
-contract Factory is Owned {
+contract Factory is ICampaignFactory, Owned {
+    address public immutable override WHBAR;
 
-    address public WHBAR;
-    MultiRewards[] public campaigns;
+    // Flat fee that is charged on campaign creation/extension
+    uint256 public override fee;
 
-    constructor(address _whbar) public Owned(msg.sender) {
+    // Obtain pool and its tokens when creating a farm campaign
+    address public override poolsFactory;
+
+    // Additional tokens that can be used as rewards except the pool ones
+    mapping(address => bool) public override rewardTokens;
+
+    // All the campaign being created
+    address[] public override campaigns;
+
+    // Store pool to farm campaign
+    mapping(address => address) public override farmCampaigns;
+
+    constructor(address _whbar, uint256 _fee, address _poolsFactory) Owned(msg.sender) {
+        require(_fee <= 1e18, 'Fee out of range');
+
         WHBAR = _whbar;
+        fee = _fee;
+        poolsFactory = _poolsFactory;
     }
 
-    event CampaignDeployed(address campaign, address stakingToken);
+    /// @notice Set a flat fee that is to be charged on campaign creation/extension
+    /// @param _fee The amount of fee
+    function setFee(uint256 _fee) external override onlyOwner {
+        require(_fee <= 1e18, 'Fee out of range');
+        fee = _fee;
+        emit SetFee(_fee);
+    }
+
+    /// @notice Add/Remove tokens that are allowed to be added as a rewards for every single campaign
+    /// @param whitelistedTokens The tokens that are to be allowed/disallowed
+    /// @param toWhitelist Flag determining allowing/disallowing
+    function setRewardTokens(address[] calldata whitelistedTokens, bool toWhitelist) external override onlyOwner {
+        uint256 numberOfTokens = whitelistedTokens.length;
+        for (uint256 i = 0; i < numberOfTokens; ) {
+            rewardTokens[whitelistedTokens[i]] = toWhitelist;
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        emit SetRewardTokens(whitelistedTokens, toWhitelist);
+    }
 
     /// @notice Deploys new instance of the {MultiRewards} contract effectively creating new campaign
-    /// @param _owner The owner to be set for the campaign
-    /// @param _stakingToken The token that will be staked by users
-    function deploy(address _owner, address _stakingToken) external onlyOwner {
-        MultiRewards newCampaign = new MultiRewards(_owner, _stakingToken, WHBAR);
-        campaigns.push(newCampaign);
+    /// @param _tokenA The first token of the pool the campaign is created for
+    /// @param _tokenB The second token of the pool the campaign is created for
+    function deploy(address _tokenA, address _tokenB) external override {
+        address stakingToken = IPoolsFactory(poolsFactory).getPair(_tokenA, _tokenB);
+        require(stakingToken != address(0), 'Such a pool does not exists');
+        require(farmCampaigns[stakingToken] == address(0), 'Campaign already exists for the given pool');
 
-        emit CampaignDeployed(address(newCampaign), _stakingToken);
+        MultiRewards newCampaign = new MultiRewards(stakingToken, _tokenA, _tokenB, WHBAR, owner);
+        farmCampaigns[stakingToken] = address(newCampaign);
+        campaigns.push(address(newCampaign));
+
+        emit CampaignDeployed(address(newCampaign), stakingToken);
     }
 
-    function getCampaignsLength() public view returns (uint256 count) {
+    /// @notice Withdraw fees being collected by creating/extending campaigns
+    /// @param receiver The address to receive the fee being accumulated so far
+    /// @param token The currency the fee to be withdrawn in
+    function withdrawFee(address receiver, address token) external override onlyOwner {
+        uint256 feeAmount = IERC20(token).balanceOf(address(this));
+        TransferHelper.safeTransfer(token, receiver, feeAmount);
+        emit WithdrawFee(token, feeAmount, receiver);
+    }
+
+    /// @notice Get the number of campaigns to be able to loop through them
+    function getCampaignsLength() external view override returns (uint256 count) {
         return campaigns.length;
     }
 }
