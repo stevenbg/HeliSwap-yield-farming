@@ -17,6 +17,14 @@ task('deployFactory', 'Deploys an YF factory contract').setAction(async () => {
   await factoryDeployment();
 });
 
+task('addRewards', 'Whitelist rewatds to YF factory')
+  .addParam('factory', 'Factory contract address')
+  .setAction(async taskArgs => {
+    const { factory } = taskArgs;
+    const addRewards = require('./scripts/00-add-rewards');
+    await addRewards(factory);
+  });
+
 task('deployCampaign', 'Deploys an YF contract from factory')
   .addParam('factory', 'Factory contract address')
   .addParam('token0', 'Token A')
