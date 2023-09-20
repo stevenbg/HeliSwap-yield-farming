@@ -15,10 +15,15 @@ import '@openzeppelin/contracts/utils/math/SafeMath.sol';
 import '@openzeppelin/contracts/security/Pausable.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 
+/**
+ * @title MultiRewards
+ * @dev Contract responsible for distributing farm rewards among the stakers
+ * @author HeliSwap
+ **/
+
 contract MultiRewards is IMultiRewards, Owned, ReentrancyGuard, Pausable {
     using SafeMath for uint256;
 
-    /* ========== STATE VARIABLES ========== */
     address public override WHBAR;
 
     // The factory address needed to obtain fee and additional reward tokens
@@ -59,8 +64,9 @@ contract MultiRewards is IMultiRewards, Owned, ReentrancyGuard, Pausable {
     uint256 private _totalSupply;
     mapping(address => uint256) private _balances;
 
-    /* ========== MODIFIERS ========== */
-
+    /// @notice Update global rewards trackers, user rewards accumulated so far and
+    /// user tracker so the next time he updates his position, only the new
+    /// rewards to be accumulated
     modifier updateReward(address account) {
         for (uint256 i; i < rewardTokens.length; i++) {
             address token = rewardTokens[i];
@@ -74,8 +80,6 @@ contract MultiRewards is IMultiRewards, Owned, ReentrancyGuard, Pausable {
         _;
     }
 
-    /* ========== CONSTRUCTOR ========== */
-
     constructor(address _stakingToken, address _tokenA, address _tokenB, address _whbar, address _owner) Owned(_owner) {
         stakingToken = _stakingToken;
         WHBAR = _whbar;
@@ -84,8 +88,6 @@ contract MultiRewards is IMultiRewards, Owned, ReentrancyGuard, Pausable {
 
         factory = msg.sender;
     }
-
-    /* ========== MUTATIVE FUNCTIONS ========== */
 
     /// @notice Pre-configure a campaign
     /// @param _duration The duration of the campaign
@@ -208,8 +210,6 @@ contract MultiRewards is IMultiRewards, Owned, ReentrancyGuard, Pausable {
         _unpause();
     }
 
-    /* ========== VIEWS ========== */
-
     /// @notice Return the number of staked tokens
     function totalSupply() external view override returns (uint256) {
         return _totalSupply;
@@ -253,8 +253,6 @@ contract MultiRewards is IMultiRewards, Owned, ReentrancyGuard, Pausable {
     function getRewardForDuration(address _rewardsToken) external view override returns (uint256) {
         return rewardData[_rewardsToken].rewardRate.mul(rewardsDuration);
     }
-
-    /* ========== HELPER FUNCTIONS ========== */
 
     function optimisticAssociation(address token) internal {
         (bool success, bytes memory result) = address(0x167).call(

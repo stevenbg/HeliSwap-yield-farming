@@ -7,7 +7,12 @@ import './libraries/TransferHelper.sol';
 import './interfaces/IPoolsFactory.sol';
 import './interfaces/ICampaignFactory.sol';
 
-/// @notice Factory contract for deploying Yield Farming campaigns
+/**
+ * @title Factory
+ * @dev Contract responsible for creating farm campaigns
+ * @author HeliSwap
+ **/
+
 contract Factory is ICampaignFactory, Owned {
     address public immutable override WHBAR;
 

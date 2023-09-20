@@ -1,40 +1,48 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import '../node_modules/@openzeppelin/contracts/access/Ownable.sol';
+import './interfaces/IWhitelist.sol';
+import './interfaces/IPoolsFactory.sol';
+import '@openzeppelin/contracts/access/Ownable.sol';
 
-contract Whitelist is Ownable {
-    address private _owner;
-    mapping(address => bool) private _whitelistedTokens;
+/**
+ * @title Whitelist
+ * @dev Contract responsible for keeping the tokens approved in HeliSwap DEX
+ * @author HeliSwap
+ **/
 
-    // Event to log when a token is added to the whitelist
-    event TokenWhitelisted(address tokenAddress);
+contract Whitelist is Ownable, IWhitelist {
+    address public immutable override whbar;
 
-    // Event to log when a token is removed from the whitelist
-    event TokenRemoved(address tokenAddress);
+    // Used to validate if a token for whitelisting has a direct pool with WHBAR
+    address public immutable override poolsFactory;
 
-    constructor(address[] memory initialTokens) {
-        _owner = msg.sender;
-        for (uint256 i = 0; i < initialTokens.length; i++) {
-            _whitelistedTokens[initialTokens[i]] = true;
-            emit TokenWhitelisted(initialTokens[i]);
+    // Keeps all the whitelisted tokens
+    mapping(address => bool) public override whitelistedTokens;
+
+    constructor(address _whbar, address _poolsFactory) {
+        whbar = _whbar;
+        poolsFactory = _poolsFactory;
+    }
+
+    /// @notice Add/Remove tokens to/from the whitelist
+    /// @param _tokens Tokens to be set
+    /// @param _toWhitelist Add/Remove flag
+    function setWhitelist(address[] memory _tokens, bool _toWhitelist) public override onlyOwner {
+        uint256 numberOfTokens = _tokens.length;
+        for (uint256 i = 0; i < numberOfTokens; ) {
+            address token = _tokens[i];
+            address pool = IPoolsFactory(poolsFactory).getPair(token, whbar);
+
+            require(pool != address(0), 'There is no a pool with Token:WHBAR');
+
+            whitelistedTokens[token] = _toWhitelist;
+
+            unchecked {
+                ++i;
+            }
         }
-    }
 
-    // Function to add a token to the whitelist
-    function addToWhitelist(address tokenAddress) external onlyOwner {
-        _whitelistedTokens[tokenAddress] = true;
-        emit TokenWhitelisted(tokenAddress);
-    }
-
-    // Function to remove a token from the whitelist
-    function removeFromWhitelist(address tokenAddress) external onlyOwner {
-        _whitelistedTokens[tokenAddress] = false;
-        emit TokenRemoved(tokenAddress);
-    }
-
-    // Function for other contracts or accounts to check if a token is whitelisted
-    function isWhitelisted(address tokenAddress) external view returns (bool) {
-        return _whitelistedTokens[tokenAddress];
+        emit TokensWhitelisted(_tokens, _toWhitelist);
     }
 }
