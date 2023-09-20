@@ -17,32 +17,29 @@ contract Whitelist is Ownable, IWhitelist {
     // Used to validate if a token for whitelisting has a direct pool with WHBAR
     address public immutable override poolsFactory;
 
-    // Keeps all the whitelisted tokens
-    mapping(address => bool) public override whitelistedTokens;
+    mapping(address => string) public override whitelistedTokens;
 
     constructor(address _whbar, address _poolsFactory) {
         whbar = _whbar;
         poolsFactory = _poolsFactory;
     }
 
-    /// @notice Add/Remove tokens to/from the whitelist
-    /// @param _tokens Tokens to be set
-    /// @param _toWhitelist Add/Remove flag
-    function setWhitelist(address[] memory _tokens, bool _toWhitelist) public override onlyOwner {
-        uint256 numberOfTokens = _tokens.length;
-        for (uint256 i = 0; i < numberOfTokens; ) {
-            address token = _tokens[i];
-            address pool = IPoolsFactory(poolsFactory).getPair(token, whbar);
+    /// @notice Add a token to the whitelist
+    /// @param _token Token to be added
+    /// @param _ipfsHash IPFS image
+    function addToWhitelist(address _token, string memory _ipfsHash) external override onlyOwner {
+        address pool = IPoolsFactory(poolsFactory).getPair(_token, whbar);
+        require(pool != address(0), 'There is no a pool with Token:WHBAR');
 
-            require(pool != address(0), 'There is no a pool with Token:WHBAR');
+        whitelistedTokens[_token] = _ipfsHash;
 
-            whitelistedTokens[token] = _toWhitelist;
+        emit TokenAdded(_token, _ipfsHash);
+    }
 
-            unchecked {
-                ++i;
-            }
-        }
-
-        emit TokensWhitelisted(_tokens, _toWhitelist);
+    /// @notice Remove a token from the whitelist
+    /// @param _token Token to be removed
+    function removeFromWhitelist(address _token) external override onlyOwner {
+        delete whitelistedTokens[_token];
+        emit TokenRemoved(_token);
     }
 }

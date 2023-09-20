@@ -14,6 +14,39 @@ describe('Factory', () => {
     beforeEach(async () => {
         signers = await ethers.getSigners();
 
+        const optimisticContract = await smock.fake([
+            {
+                'inputs': [
+                    {
+                        'internalType': 'address',
+                        'name': 'associatee',
+                        'type': 'address'
+                    },
+                    {
+                        'internalType': 'address',
+                        'name': 'token',
+                        'type': 'address'
+                    }
+                ],
+                'name': 'associateToken',
+                'outputs': [
+                    {
+                        'internalType': 'uint256',
+                        'name': '',
+                        'type': 'uint256'
+                    }
+                ],
+                'stateMutability': 'nonpayable',
+                'type': 'function'
+            }
+        ],
+            {
+                address: '0x0000000000000000000000000000000000000167',
+            });
+
+        // // @ts-ignore
+        optimisticContract.associateToken.returns(167);
+
         const Factory = await ethers.getContractFactory('Factory');
         factory = await (await Factory.deploy(WHBAR, FEE, POOLS_FACTORY)).deployed();
     });

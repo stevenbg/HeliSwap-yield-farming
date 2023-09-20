@@ -19,6 +19,8 @@ interface ICampaignFactory {
 
     function farmCampaigns(address) external view returns (address);
 
+    function associatedTokens(address) external view returns (bool);
+
     function setFee(uint256 _fee) external;
 
     function setRewardTokens(address[] calldata whitelistedTokens, bool toWhitelist) external;

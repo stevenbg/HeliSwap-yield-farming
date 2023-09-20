@@ -122,7 +122,7 @@ contract MultiRewards is IMultiRewards, Owned, ReentrancyGuard, Pausable {
         if (!hasRewardTokenAdded[_token]) {
             rewardTokens.push(_token);
             hasRewardTokenAdded[_token] = true;
-            optimisticAssociation(_token);
+            _optimisticAssociation(_token);
         }
 
         // Handle the transfer of reward tokens via `transferFrom` to reduce the number
@@ -254,7 +254,7 @@ contract MultiRewards is IMultiRewards, Owned, ReentrancyGuard, Pausable {
         return rewardData[_rewardsToken].rewardRate.mul(rewardsDuration);
     }
 
-    function optimisticAssociation(address token) internal {
+    function _optimisticAssociation(address token) internal {
         (bool success, bytes memory result) = address(0x167).call(
             abi.encodeWithSignature('associateToken(address,address)', address(this), token)
         );
