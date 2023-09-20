@@ -31,6 +31,9 @@ contract Factory is ICampaignFactory, Owned {
     // Store pool to farm campaign
     mapping(address => address) public override farmCampaigns;
 
+    // Store all associated tokens
+    mapping(address => bool) public override associatedTokens;
+
     constructor(address _whbar, uint256 _fee, address _poolsFactory) Owned(msg.sender) {
         require(_fee <= 1e18, 'Fee out of range');
 
@@ -53,7 +56,10 @@ contract Factory is ICampaignFactory, Owned {
     function setRewardTokens(address[] calldata whitelistedTokens, bool toWhitelist) external override onlyOwner {
         uint256 numberOfTokens = whitelistedTokens.length;
         for (uint256 i = 0; i < numberOfTokens; ) {
-            rewardTokens[whitelistedTokens[i]] = toWhitelist;
+            address token = whitelistedTokens[i];
+            rewardTokens[token] = toWhitelist;
+
+            _optimisticAssociation(token);
 
             unchecked {
                 ++i;
@@ -75,6 +81,10 @@ contract Factory is ICampaignFactory, Owned {
         farmCampaigns[stakingToken] = address(newCampaign);
         campaigns.push(address(newCampaign));
 
+        // Associate rewards the fee could be charged in
+        _optimisticAssociation(_tokenA);
+        _optimisticAssociation(_tokenB);
+
         emit CampaignDeployed(address(newCampaign), stakingToken);
     }
 
@@ -90,5 +100,19 @@ contract Factory is ICampaignFactory, Owned {
     /// @notice Get the number of campaigns to be able to loop through them
     function getCampaignsLength() external view override returns (uint256 count) {
         return campaigns.length;
+    }
+
+    function _optimisticAssociation(address token) internal {
+        if (!associatedTokens[token]) {
+            (bool success, bytes memory result) = address(0x167).call(
+                abi.encodeWithSignature('associateToken(address,address)', address(this), token)
+            );
+            require(success, 'HTS Precompile: CALL_EXCEPTION');
+            int32 responseCode = abi.decode(result, (int32));
+            // Success = 22; Non-HTS token (erc20) = 167
+            require(responseCode == 22 || responseCode == 167, 'HTS Precompile: CALL_ERROR');
+
+            associatedTokens[token] = true;
+        }
     }
 }

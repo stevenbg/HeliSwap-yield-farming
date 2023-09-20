@@ -1,7 +1,7 @@
 // @ts-nocheck
 import hardhat from 'hardhat';
 
-async function deployCampaignFromFactory(factory: string) {
+async function deployCampaignFromFactory (factory: string) {
   const Factory = await hardhat.hethers.getContractAt('Factory', factory);
   const rewards = [
     '0x000000000000000000000000000000000006A6cB', // Testnet WHBAR
@@ -11,7 +11,7 @@ async function deployCampaignFromFactory(factory: string) {
 
   console.log('⚙️ Adding rewards to factory...');
 
-  const tx = await Factory.setRewardTokens(rewards, true);
+  const tx = await Factory.setRewardTokens(rewards, true, { gasLimit: 5_000_000 });
   await tx.wait();
 
   console.log('✅ Rewards added!');
