@@ -48,10 +48,11 @@ task('sendReward', 'Notify contract for YF rewards')
   .addParam('campaign', 'Campaign address')
   .addParam('reward', 'Reward address')
   .addParam('amount', 'Reward amount')
+  .addParam('duration', 'Reward duration')
   .setAction(async taskArgs => {
-    const { campaign, reward, amount } = taskArgs;
+    const { campaign, reward, amount, duration } = taskArgs;
     const sendReward = require('./scripts/04-send-reward');
-    await sendReward(campaign, reward, amount);
+    await sendReward(campaign, reward, amount, duration);
   });
 
 task('associateToken', 'Associates an HTS token')
@@ -108,15 +109,17 @@ task('setupMultiRewardsCampaign', 'Deploys Multi Rewards campaign')
 
 task('campaignInfo', 'Interact with multirewards contract')
   .addParam('campaign', 'Contract address')
-  .addParam('walletAddress', 'Wallet address')
-  .addParam('index', 'Reward index')
-  .addParam('decimals', 'Reward token decimals')
+  //   .addParam('walletAddress', 'Wallet address')
+  //   .addParam('index', 'Reward index')
+  //   .addParam('decimals', 'Reward token decimals')
   .setAction(async taskArgs => {
-    const { campaign, walletAddress, index, decimals } = taskArgs;
+    // const { campaign, walletAddress, index, decimals } = taskArgs;
+    const { campaign } = taskArgs;
 
     const campaignInfo = require('./scripts/05-campaign-info');
 
-    await campaignInfo(campaign, walletAddress, index, decimals);
+    // await campaignInfo(campaign, walletAddress, index, decimals);
+    await campaignInfo(campaign);
   });
 
 task('setDuration', 'Adjust the duration of a particular campaign')
