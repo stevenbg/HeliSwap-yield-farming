@@ -5,6 +5,10 @@ import { smock } from '@defi-wonderland/smock';
 describe('Whitelisted Tokens', () => {
 
     const WHBAR = '0x0000000000000000000000000000000000000001';
+    const TOKEN_A = '0x0000000000000000000000000000000000000002';
+    const TOKEN_B = '0x0000000000000000000000000000000000000003';
+    const TOKEN_C = '0x0000000000000000000000000000000000000004';
+    const IPFS_HASH = 'QmdeYoRSkqDhoRNVNzudgFSpoCyZqtsXD7FTUCGnAp1oju';
 
     let signers: any;
     let whitelist: any;
@@ -17,6 +21,10 @@ describe('Whitelisted Tokens', () => {
 
         const Whitelist = await ethers.getContractFactory('Whitelist');
         whitelist = await (await Whitelist.deploy(WHBAR, poolsFactory.address)).deployed();
+
+        poolsFactory.getPair.whenCalledWith(TOKEN_A, WHBAR).returns(TOKEN_A);
+        poolsFactory.getPair.whenCalledWith(TOKEN_B, WHBAR).returns(TOKEN_B);
+        poolsFactory.getPair.whenCalledWith(TOKEN_C, WHBAR).returns(ethers.constants.AddressZero);
     });
 
     it('Should deploy correctly ', async () => {
@@ -24,49 +32,40 @@ describe('Whitelisted Tokens', () => {
         expect(await whitelist.poolsFactory()).to.equal(poolsFactory.address);
     });
 
-    describe('Set Whitelist', function () {
-        const TOKEN_A = '0x0000000000000000000000000000000000000002';
-        const TOKEN_B = '0x0000000000000000000000000000000000000003';
-        const TOKEN_C = '0x0000000000000000000000000000000000000004';
-
-        beforeEach(async () => {
-            poolsFactory.getPair.whenCalledWith(TOKEN_A, WHBAR).returns(TOKEN_A);
-            poolsFactory.getPair.whenCalledWith(TOKEN_B, WHBAR).returns(TOKEN_B);
-            poolsFactory.getPair.whenCalledWith(TOKEN_C, WHBAR).returns(ethers.constants.AddressZero);
-        });
+    describe('Add to whitelist', function () {
 
         it('Should set whitelisted tokens', async function () {
-            await whitelist.setWhitelist([TOKEN_A, TOKEN_B], true);
+            await whitelist.addToWhitelist(TOKEN_A, IPFS_HASH);
+            await whitelist.addToWhitelist(TOKEN_B, IPFS_HASH);
 
-            expect(await whitelist.whitelistedTokens(TOKEN_A)).to.be.equal(true);
-            expect(await whitelist.whitelistedTokens(TOKEN_B)).to.be.equal(true);
-
-            await whitelist.setWhitelist([TOKEN_A, TOKEN_B], false);
-            expect(await whitelist.whitelistedTokens(TOKEN_A)).to.be.equal(false);
-            expect(await whitelist.whitelistedTokens(TOKEN_B)).to.be.equal(false);
+            expect(await whitelist.whitelistedTokens(TOKEN_A)).to.be.equal(IPFS_HASH);
+            expect(await whitelist.whitelistedTokens(TOKEN_B)).to.be.equal(IPFS_HASH);
         });
 
         it('Should revert when there is no a direct pool for a given token with WHBAR', async function () {
             await expect(
-                whitelist.setWhitelist([TOKEN_A, TOKEN_B, TOKEN_C], true)
-            ).to.be.revertedWith('There is no a pool with Token:WHBAR');
-
-            await expect(
-                whitelist.setWhitelist([TOKEN_A, TOKEN_C, TOKEN_B], true)
-            ).to.be.revertedWith('There is no a pool with Token:WHBAR');
-
-            await expect(
-                whitelist.setWhitelist([TOKEN_C], true)
-            ).to.be.revertedWith('There is no a pool with Token:WHBAR');
-
-            await expect(
-                whitelist.setWhitelist([TOKEN_C], false)
+                whitelist.addToWhitelist(TOKEN_C, IPFS_HASH)
             ).to.be.revertedWith('There is no a pool with Token:WHBAR');
         });
 
-        it('Should revert when not the owner tries to set the fee', async function () {
+        it('Should revert when not the owner tries to add to whitelist', async function () {
             await expect(
-                whitelist.connect(signers[1]).setWhitelist([TOKEN_A], true)
+                whitelist.connect(signers[1]).addToWhitelist(TOKEN_A, IPFS_HASH)
+            ).to.be.revertedWith('Ownable: caller is not the owner');
+        });
+    });
+
+    describe('Remove from whitelist', function () {
+        it('Should remove a token', async function () {
+            await whitelist.addToWhitelist(TOKEN_A, IPFS_HASH);
+            await whitelist.removeFromWhitelist(TOKEN_A);
+
+            expect(await whitelist.whitelistedTokens(TOKEN_A)).to.be.equal('');
+        });
+
+        it('Should revert when not the owner tries to remove a token', async function () {
+            await expect(
+                whitelist.connect(signers[1]).removeFromWhitelist(TOKEN_A)
             ).to.be.revertedWith('Ownable: caller is not the owner');
         });
     });

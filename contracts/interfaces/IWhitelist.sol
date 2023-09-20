@@ -2,13 +2,17 @@
 pragma solidity ^0.8.0;
 
 interface IWhitelist {
-    event TokensWhitelisted(address[] tokens, bool toWhitelist);
+    event TokenAdded(address token, string ipfsHash);
+
+    event TokenRemoved(address token);
 
     function whbar() external view returns (address);
 
     function poolsFactory() external view returns (address);
 
-    function whitelistedTokens(address) external view returns (bool);
+    function whitelistedTokens(address) external view returns (string memory);
 
-    function setWhitelist(address[] calldata _tokens, bool _toWhitelist) external;
+    function addToWhitelist(address _token, string memory ipfsHash) external;
+
+    function removeFromWhitelist(address _token) external;
 }
