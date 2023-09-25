@@ -11,6 +11,7 @@ import './libraries/TransferHelper.sol';
 
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/utils/math/Math.sol';
+// TODO Do you need this in 0.8 because of Hedera?
 import '@openzeppelin/contracts/utils/math/SafeMath.sol';
 import '@openzeppelin/contracts/security/Pausable.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
@@ -48,7 +49,7 @@ contract MultiRewards is IMultiRewards, Owned, ReentrancyGuard, Pausable {
     // Validate if a token is to be added for the first time in the campaign
     mapping(address => bool) public override hasRewardTokenAdded;
 
-    // Token that are allowed to be used as rewards
+    // Tokens that are allowed to be used as rewards
     mapping(address => bool) public override whitelistedRewardTokens;
 
     // user -> reward token -> amount
@@ -71,6 +72,7 @@ contract MultiRewards is IMultiRewards, Owned, ReentrancyGuard, Pausable {
         for (uint256 i; i < rewardTokens.length; i++) {
             address token = rewardTokens[i];
             rewardData[token].rewardPerTokenStored = rewardPerToken(token);
+            // TODO Are the rewards unlocked between the start and the first staking locked in the contract?
             rewardData[token].lastUpdateTime = lastTimeRewardApplicable();
             if (account != address(0)) {
                 rewards[account][token] = earned(account, token);
@@ -94,6 +96,7 @@ contract MultiRewards is IMultiRewards, Owned, ReentrancyGuard, Pausable {
     /// dev: That function can be front-runned. So when one calls after that notifyReward
     /// dev: we advice to obtain the duration before that to be sure it is
     /// dev: the expected one or to adjust the desired rewards amount
+    // TODO anyone can set duration?!
     function enableReward(uint256 _duration) external override nonReentrant {
         require(block.timestamp > periodFinish, 'Reward period still active');
         require(_duration > 0 && _duration < 13, 'Reward duration out of range');
@@ -112,6 +115,7 @@ contract MultiRewards is IMultiRewards, Owned, ReentrancyGuard, Pausable {
         uint256 _duration
     ) external override nonReentrant updateReward(address(0)) {
         require(rewardsDuration > 0, 'Campaign not configured yet');
+        // TODO Why not set it, what's the story?
         require(_duration * 30 days == rewardsDuration, 'APR estimated could be wrong');
         require(
             whitelistedRewardTokens[_token] || ICampaignFactory(factory).rewardTokens(_token),
@@ -140,6 +144,7 @@ contract MultiRewards is IMultiRewards, Owned, ReentrancyGuard, Pausable {
 
         uint256 remaining = periodFinish.sub(block.timestamp);
         if (block.timestamp >= rewardData[_token].periodFinish) {
+            // TODO Do we care about the dust? maybe use the balanceOf(this)
             rewardData[_token].rewardRate = _reward.div(remaining);
             rewardData[_token].periodFinish = periodFinish;
         } else {
@@ -155,7 +160,7 @@ contract MultiRewards is IMultiRewards, Owned, ReentrancyGuard, Pausable {
     }
 
     /// @notice Stake Pool LP tokens for receiving rewards
-    /// @param amount The amount to be staken
+    /// @param amount The amount to be staked
     function stake(uint256 amount) external override nonReentrant whenNotPaused updateReward(msg.sender) {
         require(amount > 0, 'Cannot stake 0');
         _totalSupply = _totalSupply.add(amount);
@@ -222,10 +227,11 @@ contract MultiRewards is IMultiRewards, Owned, ReentrancyGuard, Pausable {
 
     /// @notice Return when the rewards have been accumulated lastly
     function lastTimeRewardApplicable() public view override returns (uint256) {
+        // TODO I wouldn't pull a dependency to do return a < b ? a : b;
         return Math.min(block.timestamp, periodFinish);
     }
 
-    /// @notice Calculate how much rewards have been accumulated for a give reward token
+    /// @notice Calculate how much rewards have been accumulated for a given reward token
     function rewardPerToken(address _rewardsToken) public view override returns (uint256) {
         if (_totalSupply == 0) {
             return rewardData[_rewardsToken].rewardPerTokenStored;
@@ -266,6 +272,7 @@ contract MultiRewards is IMultiRewards, Owned, ReentrancyGuard, Pausable {
 
     /// @dev Fallback function in case of WHBAR rewards. See {@getRewards}
     receive() external payable {
+        // TODO selfdestruct?
         require(msg.sender == WHBAR, 'Only WHBAR is allowed to send tokens');
     }
 }
