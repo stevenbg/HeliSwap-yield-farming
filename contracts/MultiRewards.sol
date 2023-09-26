@@ -75,6 +75,7 @@ contract MultiRewards is IMultiRewards, Owned, ReentrancyGuard, Pausable {
             // TODO Are the rewards unlocked between the start and the first staking locked in the contract?
             rewardData[token].lastUpdateTime = lastTimeRewardApplicable();
             if (account != address(0)) {
+                // TODO This earned() will needlessly call rewardPerToken(). Maybe do _earned(rewardData[token].rewardPerTokenStored)
                 rewards[account][token] = earned(account, token);
                 userRewardPerTokenPaid[account][token] = rewardData[token].rewardPerTokenStored;
             }
